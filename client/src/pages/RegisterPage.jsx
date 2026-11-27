@@ -70,14 +70,10 @@ function RegisterPage() {
       });
 
       if (result.success) {
-        // Show verification message instead of redirecting immediately
-        setShowVerificationMessage(true);
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          sector: ''
+        // Redirect to verification code page with email
+        navigate('/verify-code', {
+          state: { email: formData.email },
+          replace: true
         });
       } else {
         setError(result.message || 'Registration failed. Please try again.');

@@ -8,12 +8,12 @@ export const Organization = {
 
   // Create new organization
   async create(orgData) {
-    const { id, name, email, password, sector, is_verified, verification_token, verification_token_expires } = orgData;
+    const { id, name, email, password, sector, is_verified, verification_token, verification_code, verification_token_expires } = orgData;
     const [result] = await pool.query(
       `INSERT INTO organizations 
-       (id, name, email, password, sector, is_verified, verification_token, verification_token_expires) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, email, password, sector, is_verified || false, verification_token || null, verification_token_expires || null]
+       (id, name, email, password, sector, is_verified, verification_token, verification_code, verification_token_expires) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, name, email, password, sector, is_verified || false, verification_token || null, verification_code || null, verification_token_expires || null]
     );
     return this.findById(id);
   },

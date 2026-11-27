@@ -31,9 +31,12 @@ export const register = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate verification token (expires in 24 hours)
+    // Generate 6-digit verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Also keep token for backward compatibility
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     const organization = await Organization.create({
       id: crypto.randomUUID(),
@@ -43,13 +46,14 @@ export const register = async (req, res, next) => {
       sector,
       is_verified: false,
       verification_token: verificationToken,
+      verification_code: verificationCode,
       verification_token_expires: verificationTokenExpires
     });
 
-    // Send verification email
+    // Send verification email with code
     try {
-      await sendVerificationEmail(organization.email, organization.name, verificationToken);
-      console.log('✅ Verification email sent to:', organization.email);
+      await sendVerificationEmail(organization.email, organization.name, verificationCode);
+      console.log('✅ Verification email sent to:', organization.email, 'Code:', verificationCode);
     } catch (emailError) {
       console.error('⚠️ Failed to send verification email:', emailError);
       // Don't fail registration if email fails
@@ -62,11 +66,11 @@ export const register = async (req, res, next) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
-    const { password: _, verification_token: __, ...orgData } = organization;
+    const { password: _, verification_token: __, verification_code: ___, ...orgData } = organization;
 
     res.status(201).json({
       success: true,
-      message: 'Organization registered successfully. Please check your email to verify your account.',
+      message: 'Organization registered successfully. Please check your email for the verification code.',
       data: {
         organization: orgData,
         token,
@@ -154,10 +158,74 @@ export const getProfile = async (req, res, next) => {
   }
 };
 
-// @desc    Verify email with token
+// @desc    Verify email with 6-digit code
+// @route   POST /api/auth/verify-code
+// @access  Public
+export const verifyCode = async (req, res, next) => {
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and verification code are required'
+      });
+    }
+
+    // Find organization by email and code
+    const [rows] = await Organization.query(
+      'SELECT * FROM organizations WHERE email = ? AND verification_code = ? AND verification_token_expires > NOW()',
+      [email.toLowerCase().trim(), code]
+    );
+
+    const organization = rows[0];
+
+    if (!organization) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code'
+      });
+    }
+
+    if (organization.is_verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already verified'
+      });
+    }
+
+    // Update organization as verified
+    await Organization.update(organization.id, {
+      is_verified: true,
+      verification_token: null,
+      verification_code: null,
+      verification_token_expires: null
+    });
+
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(organization.email, organization.name);
+    } catch (emailError) {
+      console.error('⚠️ Failed to send welcome email:', emailError);
+    }
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully! You can now log in.',
+      data: {
+        email: organization.email,
+        name: organization.name
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Verify email with token (backward compatibility)
 // @route   GET /api/auth/verify-email/:token
 // @access  Public
-export const verifyEmail = async (req, res, next) => {
+export const verifyEmail = async (req, res, next) {
   try {
     const { token } = req.params;
 
@@ -194,6 +262,7 @@ export const verifyEmail = async (req, res, next) => {
     await Organization.update(organization.id, {
       is_verified: true,
       verification_token: null,
+      verification_code: null,
       verification_token_expires: null
     });
 
@@ -217,7 +286,7 @@ export const verifyEmail = async (req, res, next) => {
   }
 };
 
-// @desc    Resend verification email
+// @desc    Resend verification code
 // @route   POST /api/auth/resend-verification
 // @access  Public
 export const resendVerification = async (req, res, next) => {
@@ -247,21 +316,24 @@ export const resendVerification = async (req, res, next) => {
       });
     }
 
-    // Generate new verification token
+    // Generate new 6-digit verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     await Organization.update(organization.id, {
       verification_token: verificationToken,
+      verification_code: verificationCode,
       verification_token_expires: verificationTokenExpires
     });
 
-    // Send verification email
-    await sendVerificationEmail(organization.email, organization.name, verificationToken);
+    // Send verification email with new code
+    await sendVerificationEmail(organization.email, organization.name, verificationCode);
+    console.log('✅ New verification code sent:', verificationCode);
 
     res.json({
       success: true,
-      message: 'Verification email sent. Please check your inbox.'
+      message: 'Verification code sent. Please check your email.'
     });
   } catch (error) {
     next(error);

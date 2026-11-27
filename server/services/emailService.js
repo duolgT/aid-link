@@ -3,11 +3,9 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
- * Send verification email to organization
+ * Send verification email to organization with 6-digit code
  */
-export async function sendVerificationEmail(email, name, verificationToken) {
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-  
+export async function sendVerificationEmail(email, name, verificationCode) {
   try {
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'AidLink Kakuma <onboarding@resend.dev>',
@@ -58,22 +56,24 @@ export async function sendVerificationEmail(email, name, verificationToken) {
               margin-bottom: 20px;
               color: #64748b;
             }
-            .button {
-              display: inline-block;
-              padding: 14px 32px;
-              background-color: #087c75;
-              color: white;
-              text-decoration: none;
-              border-radius: 8px;
-              font-weight: 600;
-              margin: 20px 0;
+            .code-box {
+              background: #f1f5f9;
+              border: 2px dashed #087c75;
+              border-radius: 12px;
+              padding: 30px;
+              text-align: center;
+              margin: 30px 0;
             }
-            .button:hover {
-              background-color: #065f5a;
+            .code {
+              font-size: 42px;
+              font-weight: 700;
+              letter-spacing: 8px;
+              color: #087c75;
+              font-family: 'Courier New', monospace;
             }
             .info-box {
-              background: #f1f5f9;
-              border-left: 4px solid #087c75;
+              background: #fff7ed;
+              border-left: 4px solid #ea580c;
               padding: 15px;
               border-radius: 4px;
               margin: 20px 0;
@@ -86,10 +86,6 @@ export async function sendVerificationEmail(email, name, verificationToken) {
               color: #94a3b8;
               font-size: 14px;
             }
-            .link {
-              color: #087c75;
-              word-break: break-all;
-            }
           </style>
         </head>
         <body>
@@ -101,23 +97,19 @@ export async function sendVerificationEmail(email, name, verificationToken) {
               
               <h2>Welcome, ${name}!</h2>
               
-              <p>Thank you for registering your organization with AidLink Kakuma. We're excited to have you join our community of humanitarian organizations serving the Kakuma Refugee Camp.</p>
+              <p>Thank you for registering your organization with AidLink Kakuma. To complete your registration, please use the verification code below:</p>
               
-              <p>To complete your registration and start managing your services, please verify your email address by clicking the button below:</p>
-              
-              <div style="text-align: center;">
-                <a href="${verificationUrl}" class="button">Verify Email Address</a>
+              <div class="code-box">
+                <p style="margin: 0 0 10px; font-size: 14px; color: #64748b;">Your Verification Code</p>
+                <div class="code">${verificationCode}</div>
               </div>
+              
+              <p style="text-align: center;">Enter this code on the verification page to activate your account.</p>
               
               <div class="info-box">
-                <strong>⏰ This link will expire in 24 hours</strong><br>
+                <strong>⏰ This code will expire in 10 minutes</strong><br>
                 If you didn't create this account, you can safely ignore this email.
               </div>
-              
-              <p style="font-size: 14px; color: #94a3b8;">
-                If the button doesn't work, copy and paste this link into your browser:<br>
-                <a href="${verificationUrl}" class="link">${verificationUrl}</a>
-              </p>
               
               <div class="footer">
                 <p>AidLink Kakuma - Community Aid Coordination Platform<br>
