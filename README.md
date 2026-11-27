@@ -303,12 +303,12 @@ curl http://localhost:5000/api/emergency-guides
 ## 🚦 Getting Started (New Developers)
 
 1. **Read Documentation**
-   - Start with [QUICK_START.md](./QUICK_START.md)
-   - Review [PROJECT_STATUS.md](./PROJECT_STATUS.md)
+   - Start with [QUICK_START.md](Documentation/QUICK_START.md)
+   - Review [PROJECT_STATUS.md](Documentation/PROJECT_STATUS.md)
 
 2. **Setup Development Environment**
    - Install MySQL
-   - Follow [MYSQL_SETUP.md](./MYSQL_SETUP.md)
+   - Follow [MYSQL_SETUP.md](Documentation/MYSQL_SETUP.md)
 
 3. **Run Backend**
    ```bash
@@ -325,7 +325,7 @@ curl http://localhost:5000/api/emergency-guides
    ```
 
 5. **Review Integration Guide**
-   - See [INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md)
+   - See [INTEGRATION_GUIDE.md](Documentation/INTEGRATION_GUIDE.md)
    - Check code examples for each page
 
 ---
@@ -425,5 +425,5 @@ For issues or questions:
 **Made with ❤️ for the Kakuma refugee community**
 
 **Repository:** https://github.com/duolgT/aid-link  
-**Current Branch:** `bhang`  
+**COntributors:** `Wuor Bhang and Duol Daniel`  
 **Status:** Backend Complete, Frontend Integration Ready
