@@ -2,7 +2,10 @@
 
 ## 🎯 Overview
 
-Backend API for AidLink Community Challenges reporting system. Enables anonymous community members to submit reports to humanitarian organizations, and allows organizations to manage and respond to these reports.
+Backend API for AidLink Kakuma platform. Provides:
+- **Community Challenges Reporting** - Anonymous report submission and organization dashboard
+- **Essential Services Directory** - Healthcare, education, water, protection, and livelihood services
+- **Emergency Guidance** - Safety guides for medical, fire, protection, water, weather, and family emergencies
 
 ## 🏗️ Architecture
 
@@ -48,6 +51,15 @@ JWT_EXPIRES_IN=7d
 ```
 http://localhost:5000/api
 ```
+
+### Quick Reference
+- **Authentication:** `/api/auth/*` (3 endpoints)
+- **Organizations:** `/api/organizations` (1 endpoint)
+- **Reports:** `/api/reports/*` (4 endpoints)
+- **Services:** `/api/services/*` (6 endpoints) 🆕
+- **Emergency Guides:** `/api/emergency-guides/*` (6 endpoints) 🆕
+
+**Total:** 20 endpoints
 
 ---
 
@@ -532,3 +544,103 @@ For issues or questions, refer to:
 - `server/README.md` - Setup instructions
 - `server/SETUP.md` - Detailed testing guide
 - GitHub Issues - Bug reports and feature requests
+
+
+---
+
+## 🆕 Essential Services & Emergency Guides (Issue #6)
+
+### Services API
+
+For complete details, see **`server/SERVICES_API_DOCS.md`**
+
+**Public Endpoints:**
+- `GET /api/services` - List all services (with filtering)
+- `GET /api/services/:id` - Get service details
+- `GET /api/services/categories` - Get service categories
+
+**Protected Endpoints:**
+- `POST /api/services` - Create service
+- `PATCH /api/services/:id` - Update service
+- `DELETE /api/services/:id` - Delete service
+
+**Service Categories:**
+- Healthcare
+- Education
+- Water & Sanitation
+- Protection
+- Livelihoods
+
+**Example:**
+```bash
+# Get all healthcare services
+curl http://localhost:5000/api/services?category=health
+
+# Get service by ID
+curl http://localhost:5000/api/services/demo-health-01
+```
+
+---
+
+### Emergency Guides API
+
+For complete details, see **`server/SERVICES_API_DOCS.md`**
+
+**Public Endpoints:**
+- `GET /api/emergency-guides` - List all guides (with filtering)
+- `GET /api/emergency-guides/:id` - Get guide details
+- `GET /api/emergency-guides/categories` - Get guide categories
+
+**Protected Endpoints:**
+- `POST /api/emergency-guides` - Create guide
+- `PATCH /api/emergency-guides/:id` - Update guide
+- `DELETE /api/emergency-guides/:id` - Delete guide
+
+**Guide Categories:**
+- Medical
+- Fire Safety
+- Protection
+- Water Safety
+- Weather
+- Family Support
+
+**Example:**
+```bash
+# Get all medical emergency guides
+curl http://localhost:5000/api/emergency-guides?category=medical
+
+# Get guide by ID
+curl http://localhost:5000/api/emergency-guides/fire-safety
+```
+
+---
+
+## 📊 Complete API Summary
+
+| Feature | Public | Protected | Total |
+|---------|--------|-----------|-------|
+| Authentication | 2 | 1 | 3 |
+| Organizations | 1 | 0 | 1 |
+| Reports | 2 | 2 | 4 |
+| Services 🆕 | 3 | 3 | 6 |
+| Emergency Guides 🆕 | 3 | 3 | 6 |
+| **Total** | **11** | **9** | **20** |
+
+---
+
+## 🧪 Testing All Endpoints
+
+### Main API Test
+```bash
+cd server
+./test-api.sh           # Unix/Mac/Linux
+test-api.bat            # Windows
+```
+
+### Services & Guides Test 🆕
+```bash
+cd server
+./test-services-api.sh  # Unix/Mac/Linux
+test-services-api.bat   # Windows
+```
+
