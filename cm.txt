@@ -1,0 +1,6 @@
+feat: Add organization dropdown to report form
+
+- Reports require selecting organization
+- Loads from API with cached fallback
+- Shows org name and sector
+- Better error handling

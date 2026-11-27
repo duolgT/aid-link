@@ -1,35 +1,63 @@
-
-import { useRef, useState } from "react";
-import { Save, Info } from "lucide-react";
-
+import { useRef, useState, useEffect } from "react";
+import { Save, Info, Building } from "lucide-react";
 import { saveReport } from "../lib/db";
-import {
-  REPORT_CATEGORIES,
-  REPORT_AREAS,
-} from "../utils/constants";
+import { REPORT_CATEGORIES, REPORT_AREAS } from "../utils/constants";
+import { getCachedOrganizations } from "../lib/db";
+import API from "../config/api";
 
 const initialValues = {
   category: "",
   title: "",
   area: "",
   description: "",
+  organizationId: ""
 };
 
 function ReportForm({ onSaved }) {
   const [form, setForm] = useState(initialValues);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [organizations, setOrganizations] = useState([]);
+  const [loadingOrgs, setLoadingOrgs] = useState(true);
 
   const savingRef = useRef(false);
 
+  useEffect(() => {
+    loadOrganizations();
+  }, []);
+
+  async function loadOrganizations() {
+    try {
+      setLoadingOrgs(true);
+      // Try to fetch from API first
+      const response = await API.getOrganizations();
+      if (response.success && response.data) {
+        setOrganizations(response.data);
+      } else {
+        // Fallback to cached data
+        const cached = await getCachedOrganizations();
+        setOrganizations(cached);
+      }
+    } catch (error) {
+      console.error('Failed to load organizations:', error);
+      // Try cached as fallback
+      try {
+        const cached = await getCachedOrganizations();
+        setOrganizations(cached);
+      } catch (e) {
+        console.error('Failed to load cached organizations:', e);
+      }
+    } finally {
+      setLoadingOrgs(false);
+    }
+  }
+
   function handleChange(event) {
     const { name, value } = event.target;
-
     setForm((previous) => ({
       ...previous,
       [name]: value,
     }));
-
     setError("");
   }
 
@@ -45,14 +73,15 @@ function ReportForm({ onSaved }) {
       (category) => category.id === form.category
     );
 
-    if (
-      !validCategory ||
-      title.length < 6 ||
-      description.length < 20
-    ) {
+    if (!validCategory || title.length < 6 || description.length < 20) {
       setError(
         "Select a category, enter a title of at least 6 characters, and a description of at least 20 characters."
       );
+      return;
+    }
+
+    if (!form.organizationId) {
+      setError("Please select an organization to receive this report.");
       return;
     }
 
@@ -66,13 +95,13 @@ function ReportForm({ onSaved }) {
         title,
         area: form.area || "Not specified",
         description,
+        organizationId: form.organizationId,
       });
 
       setForm({ ...initialValues });
       onSaved?.(savedReport);
     } catch (err) {
       console.error("Report save failed:", err);
-
       setError(
         "Unable to save this report. Check your browser storage settings and try again."
       );
@@ -102,6 +131,39 @@ function ReportForm({ onSaved }) {
       </div>
 
       <div className="form-group">
+        <label htmlFor="report-organization" className="form-label">
+          <Building size={16} />
+          Send Report To <span aria-hidden="true">*</span>
+        </label>
+
+        <select
+          id="report-organization"
+          name="organizationId"
+          value={form.organizationId}
+          onChange={handleChange}
+          required
+          className="form-input"
+          disabled={loadingOrgs}
+        >
+          <option value="">
+            {loadingOrgs ? 'Loading organizations...' : 'Select an organization'}
+          </option>
+
+          {organizations.map((org) => (
+            <option key={org.id} value={org.id}>
+              {org.name} - {org.sector}
+            </option>
+          ))}
+        </select>
+        
+        {organizations.length === 0 && !loadingOrgs && (
+          <small style={{color: '#ea580c'}}>
+            No organizations available. Organizations must register first.
+          </small>
+        )}
+      </div>
+
+      <div className="form-group">
         <label htmlFor="report-category">
           Report Category <span aria-hidden="true">*</span>
         </label>
@@ -116,10 +178,7 @@ function ReportForm({ onSaved }) {
           <option value="">Select a category</option>
 
           {REPORT_CATEGORIES.map((category) => (
-            <option
-              key={category.id}
-              value={category.id}
-            >
+            <option key={category.id} value={category.id}>
               {category.label}
             </option>
           ))}
