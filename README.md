@@ -214,11 +214,11 @@ locally_verified, organization_id, created_at, updated_at
 
 | Document | Description |
 |----------|-------------|
-| [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) | Complete API reference with examples |
-| [MYSQL_SETUP.md](./MYSQL_SETUP.md) | MySQL database setup guide |
-| [INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md) | Frontend-backend integration examples |
-| [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Current project status and roadmap |
-| [QUICK_START.md](./QUICK_START.md) | 2-minute setup guide |
+| [API_DOCUMENTATION.md](Documentation/API_DOCUMENTATION.md) | Complete API reference with examples |
+| [MYSQL_SETUP.md](Documentation/MYSQL_SETUP.md) | MySQL database setup guide |
+| [INTEGRATION_GUIDE.md](Documentation/INTEGRATION_GUIDE.md) | Frontend-backend integration examples |
+| [PROJECT_STATUS.md](Documentation/PROJECT_STATUS.md) | Current project status and roadmap |
+| [QUICK_START.md](Documentation/QUICK_START.md) | 2-minute setup guide |
 
 ---
 
