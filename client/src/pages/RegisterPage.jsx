@@ -29,6 +29,7 @@ function RegisterPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
 
   function handleChange(e) {
     setFormData({
@@ -69,7 +70,15 @@ function RegisterPage() {
       });
 
       if (result.success) {
-        navigate('/dashboard', { replace: true });
+        // Show verification message instead of redirecting immediately
+        setShowVerificationMessage(true);
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          sector: ''
+        });
       } else {
         setError(result.message || 'Registration failed. Please try again.');
       }
@@ -101,6 +110,18 @@ function RegisterPage() {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
+          {showVerificationMessage && (
+            <div className="alert alert-success" style={{marginBottom: '24px'}}>
+              <Mail size={20} />
+              <div>
+                <strong>Check Your Email!</strong>
+                <p style={{margin: '4px 0 0', fontSize: '14px'}}>
+                  We've sent a verification link to your email address. Please check your inbox and click the link to activate your account.
+                </p>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="alert alert-error">
               <AlertCircle size={20} />

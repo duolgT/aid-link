@@ -105,29 +105,50 @@ const dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
  * Status: 'local-draft' (not yet synced) or 'synced' (confirmed by server)
  */
 export async function saveReport(reportData) {
-  const db = await dbPromise;
-  const report = {
-    id: crypto.randomUUID(),
-    ...reportData,
-    status: "local-draft",
-    syncStatus: "pending", // pending, syncing, synced, failed
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    localOnly: true
-  };
-  
-  await db.put(STORES.REPORTS, report);
-  
-  // Add to sync queue
-  await addToSyncQueue({
-    type: "report",
-    action: "create",
-    data: report,
-    entityId: report.id
-  });
-  
-  console.log("📝 Report saved locally:", report.id);
-  return report;
+  try {
+    const db = await dbPromise;
+    
+    // Generate UUID - fallback if crypto.randomUUID is not available
+    const generateUUID = () => {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      // Fallback UUID generation
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    };
+    
+    const report = {
+      id: generateUUID(),
+      ...reportData,
+      status: "local-draft",
+      syncStatus: "pending", // pending, syncing, synced, failed
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      localOnly: true
+    };
+    
+    console.log("💾 Attempting to save report:", report);
+    
+    await db.put(STORES.REPORTS, report);
+    
+    // Add to sync queue
+    await addToSyncQueue({
+      type: "report",
+      action: "create",
+      data: report,
+      entityId: report.id
+    });
+    
+    console.log("✅ Report saved locally:", report.id);
+    return report;
+  } catch (error) {
+    console.error("❌ Failed to save report:", error);
+    throw new Error(`Failed to save report: ${error.message}`);
+  }
 }
 
 /**
