@@ -1,5 +1,5 @@
 import { Service } from '../models/Service.js';
-import { categories } from '../data/services.js';
+import { categories } from '../data/categories.js';
 import { validateService } from '../utils/serviceValidation.js';
 
 // @desc    Get all services with optional filtering
