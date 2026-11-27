@@ -2,10 +2,11 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { Organization } from '../models/Organization.js';
+import { PendingRegistration } from '../models/PendingRegistration.js';
 import { validateOrganization } from '../utils/validation.js';
 import { sendVerificationEmail, sendWelcomeEmail } from '../services/emailService.js';
 
-// @desc    Register humanitarian organization
+// @desc    Register humanitarian organization (Stage 1 - Pending)
 // @route   POST /api/auth/register
 // @access  Public
 export const register = async (req, res, next) => {
@@ -21,7 +22,10 @@ export const register = async (req, res, next) => {
       });
     }
 
-    const existingOrg = await Organization.findByEmail(email.toLowerCase().trim());
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if email already exists in organizations (verified accounts)
+    const existingOrg = await Organization.findByEmail(normalizedEmail);
     if (existingOrg) {
       return res.status(409).json({
         success: false,
@@ -29,52 +33,49 @@ export const register = async (req, res, next) => {
       });
     }
 
+    // Check if email already has a pending registration
+    const existingPending = await PendingRegistration.findByEmail(normalizedEmail);
+    if (existingPending) {
+      // Delete old pending registration and create new one
+      await PendingRegistration.delete(normalizedEmail);
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate 6-digit verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Also keep token for backward compatibility
+    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
-    const organization = await Organization.create({
+    // Store in pending_registrations table (NOT in organizations yet)
+    const pendingReg = await PendingRegistration.create({
       id: crypto.randomUUID(),
       name: name.trim(),
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       password: hashedPassword,
       sector,
-      is_verified: false,
-      verification_token: verificationToken,
       verification_code: verificationCode,
-      verification_token_expires: verificationTokenExpires
+      verification_token: verificationToken,
+      verification_expires: verificationExpires
     });
 
     // Send verification email with code
     try {
-      await sendVerificationEmail(organization.email, organization.name, verificationCode);
-      console.log('✅ Verification email sent to:', organization.email, 'Code:', verificationCode);
+      await sendVerificationEmail(normalizedEmail, name.trim(), verificationCode);
+      console.log('✅ Verification email sent to:', normalizedEmail, 'Code:', verificationCode);
     } catch (emailError) {
       console.error('⚠️ Failed to send verification email:', emailError);
       // Don't fail registration if email fails
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { organizationId: organization.id, email: organization.email },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-
-    const { password: _, verification_token: __, verification_code: ___, ...orgData } = organization;
-
     res.status(201).json({
       success: true,
-      message: 'Organization registered successfully. Please check your email for the verification code.',
+      message: 'Registration initiated. Please check your email for the verification code. The code expires in 10 minutes.',
       data: {
-        organization: orgData,
-        token,
-        emailSent: true
+        email: normalizedEmail,
+        name: name.trim(),
+        emailSent: true,
+        expiresIn: '10 minutes'
       }
     });
   } catch (error) {
@@ -158,7 +159,7 @@ export const getProfile = async (req, res, next) => {
   }
 };
 
-// @desc    Verify email with 6-digit code
+// @desc    Verify email with 6-digit code (Stage 2 - Create Account)
 // @route   POST /api/auth/verify-code
 // @access  Public
 export const verifyCode = async (req, res, next) => {
@@ -172,35 +173,45 @@ export const verifyCode = async (req, res, next) => {
       });
     }
 
-    // Find organization by email and code
-    const [rows] = await Organization.query(
-      'SELECT * FROM organizations WHERE email = ? AND verification_code = ? AND verification_token_expires > NOW()',
-      [email.toLowerCase().trim(), code]
-    );
+    const normalizedEmail = email.toLowerCase().trim();
 
-    const organization = rows[0];
+    // Find pending registration by email and code
+    const pendingReg = await PendingRegistration.findByEmailAndCode(normalizedEmail, code);
 
-    if (!organization) {
+    if (!pendingReg) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired verification code'
+        message: 'Invalid or expired verification code. Please request a new code.'
       });
     }
 
-    if (organization.is_verified) {
-      return res.status(400).json({
+    // Check if organization already exists (edge case)
+    const existingOrg = await Organization.findByEmail(normalizedEmail);
+    if (existingOrg) {
+      // Clean up pending registration
+      await PendingRegistration.delete(normalizedEmail);
+      
+      return res.status(409).json({
         success: false,
-        message: 'Email already verified'
+        message: 'Organization with this email already exists. Please login.'
       });
     }
 
-    // Update organization as verified
-    await Organization.update(organization.id, {
-      is_verified: true,
+    // NOW create the actual organization account (verified immediately)
+    const organization = await Organization.create({
+      id: pendingReg.id,
+      name: pendingReg.name,
+      email: pendingReg.email,
+      password: pendingReg.password, // Already hashed
+      sector: pendingReg.sector,
+      is_verified: true, // Verified immediately upon code confirmation
       verification_token: null,
       verification_code: null,
       verification_token_expires: null
     });
+
+    // Delete pending registration
+    await PendingRegistration.delete(normalizedEmail);
 
     // Send welcome email
     try {
@@ -209,9 +220,11 @@ export const verifyCode = async (req, res, next) => {
       console.error('⚠️ Failed to send welcome email:', emailError);
     }
 
+    console.log('✅ Account created and verified:', organization.email);
+
     res.json({
       success: true,
-      message: 'Email verified successfully! You can now log in.',
+      message: 'Email verified successfully! Your account has been created. You can now log in.',
       data: {
         email: organization.email,
         name: organization.name
@@ -225,7 +238,7 @@ export const verifyCode = async (req, res, next) => {
 // @desc    Verify email with token (backward compatibility)
 // @route   GET /api/auth/verify-email/:token
 // @access  Public
-export const verifyEmail = async (req, res, next) {
+export const verifyEmail = async (req, res, next) => {
   try {
     const { token } = req.params;
 
@@ -300,40 +313,45 @@ export const resendVerification = async (req, res, next) => {
       });
     }
 
-    const organization = await Organization.findByEmail(email.toLowerCase().trim());
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (!organization) {
-      return res.status(404).json({
+    // Check if organization already exists and is verified
+    const existingOrg = await Organization.findByEmail(normalizedEmail);
+    if (existingOrg && existingOrg.is_verified) {
+      return res.status(400).json({
         success: false,
-        message: 'Organization not found'
+        message: 'Email already verified. Please login.'
       });
     }
 
-    if (organization.is_verified) {
-      return res.status(400).json({
+    // Find pending registration
+    const pendingReg = await PendingRegistration.findByEmail(normalizedEmail);
+
+    if (!pendingReg) {
+      return res.status(404).json({
         success: false,
-        message: 'Email already verified'
+        message: 'No pending registration found for this email. Please register first.'
       });
     }
 
     // Generate new 6-digit verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    await Organization.update(organization.id, {
-      verification_token: verificationToken,
+    await PendingRegistration.update(normalizedEmail, {
       verification_code: verificationCode,
-      verification_token_expires: verificationTokenExpires
+      verification_token: verificationToken,
+      verification_expires: verificationExpires
     });
 
     // Send verification email with new code
-    await sendVerificationEmail(organization.email, organization.name, verificationCode);
+    await sendVerificationEmail(normalizedEmail, pendingReg.name, verificationCode);
     console.log('✅ New verification code sent:', verificationCode);
 
     res.json({
       success: true,
-      message: 'Verification code sent. Please check your email.'
+      message: 'Verification code sent. Please check your email. The code expires in 10 minutes.'
     });
   } catch (error) {
     next(error);

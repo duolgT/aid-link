@@ -8,6 +8,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import emergencyGuideRoutes from './routes/emergencyGuideRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { testConnection, initializeDatabase } from './config/db.js';
+import { PendingRegistration } from './models/PendingRegistration.js';
 
 dotenv.config();
 
@@ -56,6 +57,16 @@ async function startServer() {
 
     // Initialize database tables
     await initializeDatabase();
+
+    // Schedule cleanup of expired pending registrations (every hour)
+    setInterval(async () => {
+      try {
+        await PendingRegistration.deleteExpired();
+        console.log('🧹 Cleaned up expired pending registrations');
+      } catch (error) {
+        console.error('⚠️ Failed to clean up pending registrations:', error.message);
+      }
+    }, 60 * 60 * 1000); // 1 hour
 
     // Start server
     app.listen(PORT, () => {
