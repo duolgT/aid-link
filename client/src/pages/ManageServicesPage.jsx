@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Briefcase, Plus, Edit, Trash2, X } from 'lucide-react';
+import { Briefcase, Plus, Edit, Trash2, X, MapPin, Phone } from 'lucide-react';
 import API from '../config/api';
 
 const CATEGORIES = [
@@ -83,91 +83,103 @@ function ManageServicesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      <div className="management-page">
+        <div className="loading-spinner">Loading services...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Briefcase className="h-8 w-8 text-emerald-600" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Manage Services</h1>
-                <p className="text-sm text-gray-600">Create and manage your organization's services</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Add Service
-            </button>
-          </div>
+    <div className="management-page">
+      <div className="page-header">
+        <div className="page-title">
+          <Briefcase size={32} style={{color: '#087c75'}} />
+          <h1>Manage Services</h1>
+        </div>
+        <p className="page-subtitle">Create and manage your organization's services</p>
+        
+        <div className="page-actions">
+          <button onClick={() => setShowForm(true)} className="btn btn-primary">
+            <Plus size={18} />
+            Add Service
+          </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Services List */}
-        {services.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No services yet</h3>
-            <p className="text-gray-600 mb-6">Get started by creating your first service</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Create Service
-            </button>
+      {services.length === 0 ? (
+        <div className="empty-state-box">
+          <div className="empty-icon">
+            <Briefcase size={40} />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map(service => (
-              <div key={service.id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.name}</h3>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 mb-2">
-                      {service.category}
-                    </span>
-                    {service.area && (
-                      <p className="text-sm text-gray-600 mb-2">📍 {service.area}</p>
-                    )}
-                  </div>
-                </div>
-                <p className="text-gray-700 text-sm mb-4 line-clamp-3">{service.description}</p>
-                {service.phone && (
-                  <p className="text-sm text-gray-600 mb-4">📞 {service.phone}</p>
-                )}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(service)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    <Edit className="h-3.5 w-3.5" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(service.id)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Delete
-                  </button>
+          <h3>No services yet</h3>
+          <p>Get started by creating your first service</p>
+          <button onClick={() => setShowForm(true)} className="btn btn-primary">
+            <Plus size={18} />
+            Create Service
+          </button>
+        </div>
+      ) : (
+        <div className="content-grid">
+          {services.map(service => (
+            <div key={service.id} className="content-card">
+              <div className="card-header">
+                <div>
+                  <h3 className="card-title">{service.name}</h3>
+                  <span className="card-badge badge-teal">
+                    {service.category}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              
+              <div className="card-content">
+                {service.area && (
+                  <p style={{display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px'}}>
+                    <MapPin size={16} style={{color: '#087c75'}} />
+                    <span>{service.area}</span>
+                  </p>
+                )}
+                <p style={{marginBottom: '12px'}}>{service.description}</p>
+                {service.services_offered && service.services_offered.length > 0 && (
+                  <div style={{marginBottom: '12px'}}>
+                    <strong style={{fontSize: '13px', color: '#172b49'}}>Services Offered:</strong>
+                    <ul style={{marginTop: '6px', paddingLeft: '20px', fontSize: '13px', color: '#64748b'}}>
+                      {service.services_offered.slice(0, 3).map((item, idx) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                      {service.services_offered.length > 3 && (
+                        <li style={{fontStyle: 'italic'}}>+{service.services_offered.length - 3} more...</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+                {service.phone && (
+                  <p style={{display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#64748b'}}>
+                    <Phone size={14} />
+                    {service.phone}
+                  </p>
+                )}
+              </div>
+
+              <div className="card-actions">
+                <button
+                  onClick={() => handleEdit(service)}
+                  className="btn btn-sm btn-secondary"
+                >
+                  <Edit size={16} />
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(service.id)}
+                  className="btn btn-sm btn-danger"
+                >
+                  <Trash2 size={16} />
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Service Form Modal */}
       {showForm && (
@@ -226,52 +238,45 @@ function ServiceForm({ service, onSubmit, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
+    <div className="modal-overlay">
+      <div className="modal-content" style={{maxWidth: '600px'}}>
+        <div className="modal-header">
+          <h2 className="modal-title">
             {service ? 'Edit Service' : 'Create New Service'}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-6 w-6" />
+          <button onClick={onClose} className="modal-close">
+            <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="modal-body">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div style={{padding: '12px', background: '#fee', border: '1px solid #fcc', borderRadius: '8px', color: '#c33', marginBottom: '16px'}}>
               {error}
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Service Name *
-            </label>
+          <div className="form-group">
+            <label className="form-label">Service Name *</label>
             <input
               type="text"
               name="name"
               required
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="form-input"
               placeholder="e.g., Primary Healthcare Clinic"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category *
-            </label>
+          <div className="form-group">
+            <label className="form-label">Category *</label>
             <select
               name="category"
               required
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="form-input"
             >
               <option value="">Select a category</option>
               {CATEGORIES.map(cat => (
@@ -280,76 +285,68 @@ function ServiceForm({ service, onSubmit, onClose }) {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Area/Location
-            </label>
+          <div className="form-group">
+            <label className="form-label">Area/Location</label>
             <input
               type="text"
               name="area"
               value={formData.area}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="form-input"
               placeholder="e.g., Kakuma 1, Zone 3"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description *
-            </label>
+          <div className="form-group">
+            <label className="form-label">Description *</label>
             <textarea
               name="description"
               required
               value={formData.description}
               onChange={handleChange}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="form-input"
               placeholder="Describe the service..."
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Services Offered * (comma-separated)
-            </label>
+          <div className="form-group">
+            <label className="form-label">Services Offered * (comma-separated)</label>
             <input
               type="text"
               name="services_offered"
               required
               value={formData.services_offered}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="form-input"
               placeholder="e.g., Consultation, Vaccination, Emergency Care"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
+          <div className="form-group">
+            <label className="form-label">Phone Number</label>
             <input
               type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="form-input"
               placeholder="+254 XXX XXX XXX"
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="modal-footer">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="btn btn-primary"
             >
               {loading ? 'Saving...' : service ? 'Update Service' : 'Create Service'}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="btn btn-secondary"
             >
               Cancel
             </button>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, Plus, Edit, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Plus, Edit, Trash2, X, AlertCircle } from 'lucide-react';
 import API from '../config/api';
 
 const CATEGORIES = [
@@ -82,107 +82,109 @@ function ManageGuidesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      <div className="management-page">
+        <div className="loading-spinner">Loading emergency guides...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Manage Emergency Guides</h1>
-                <p className="text-sm text-gray-600">Create and manage emergency response guides</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Add Guide
-            </button>
-          </div>
+    <div className="management-page">
+      <div className="page-header">
+        <div className="page-title">
+          <AlertTriangle size={32} style={{color: '#dc2626'}} />
+          <h1>Manage Emergency Guides</h1>
+        </div>
+        <p className="page-subtitle">Create and manage emergency response guides</p>
+        
+        <div className="page-actions">
+          <button onClick={() => setShowForm(true)} className="btn btn-danger">
+            <Plus size={18} />
+            Add Guide
+          </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Guides List */}
-        {guides.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No emergency guides yet</h3>
-            <p className="text-gray-600 mb-6">Create your first emergency response guide</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Create Guide
-            </button>
+      {guides.length === 0 ? (
+        <div className="empty-state-box">
+          <div className="empty-icon">
+            <AlertTriangle size={40} />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {guides.map(guide => (
-              <div key={guide.id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{guide.title}</h3>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 mb-2">
-                      {guide.category}
-                    </span>
-                  </div>
+          <h3>No emergency guides yet</h3>
+          <p>Create your first emergency response guide</p>
+          <button onClick={() => setShowForm(true)} className="btn btn-danger">
+            <Plus size={18} />
+            Create Guide
+          </button>
+        </div>
+      ) : (
+        <div className="content-grid">
+          {guides.map(guide => (
+            <div key={guide.id} className="content-card">
+              <div className="card-header">
+                <div>
+                  <h3 className="card-title">{guide.title}</h3>
+                  <span className="card-badge badge-red">
+                    <AlertCircle size={14} />
+                    {guide.category}
+                  </span>
                 </div>
-                <p className="text-gray-700 text-sm mb-4">{guide.summary}</p>
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Response Steps:</p>
-                  <ol className="list-decimal list-inside space-y-1">
+              </div>
+              
+              <div className="card-content">
+                <p style={{marginBottom: '12px'}}>{guide.summary}</p>
+                
+                <div style={{marginBottom: '12px'}}>
+                  <strong style={{fontSize: '13px', color: '#172b49', display: 'block', marginBottom: '6px'}}>
+                    Response Steps:
+                  </strong>
+                  <ol style={{paddingLeft: '20px', fontSize: '13px', color: '#64748b', lineHeight: '1.6'}}>
                     {guide.steps.slice(0, 3).map((step, idx) => (
-                      <li key={idx} className="text-sm text-gray-600 line-clamp-1">
-                        {step}
-                      </li>
+                      <li key={idx}>{step}</li>
                     ))}
                     {guide.steps.length > 3 && (
-                      <li className="text-sm text-gray-500 italic">
+                      <li style={{fontStyle: 'italic', color: '#94a3b8'}}>
                         +{guide.steps.length - 3} more steps...
                       </li>
                     )}
                   </ol>
                 </div>
+                
                 {guide.reminder && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-yellow-800">
+                  <div style={{
+                    background: '#fef9c3',
+                    border: '1px solid #fde047',
+                    borderRadius: '8px',
+                    padding: '10px',
+                    marginBottom: '12px'
+                  }}>
+                    <p style={{fontSize: '12px', color: '#854d0e', margin: 0}}>
                       <strong>⚠️ Remember:</strong> {guide.reminder}
                     </p>
                   </div>
                 )}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(guide)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    <Edit className="h-3.5 w-3.5" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(guide.id)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Delete
-                  </button>
-                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+
+              <div className="card-actions">
+                <button
+                  onClick={() => handleEdit(guide)}
+                  className="btn btn-sm btn-secondary"
+                >
+                  <Edit size={16} />
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(guide.id)}
+                  className="btn btn-sm btn-danger"
+                >
+                  <Trash2 size={16} />
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Guide Form Modal */}
       {showForm && (
@@ -258,52 +260,45 @@ function GuideForm({ guide, onSubmit, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
+    <div className="modal-overlay">
+      <div className="modal-content" style={{maxWidth: '700px'}}>
+        <div className="modal-header">
+          <h2 className="modal-title">
             {guide ? 'Edit Emergency Guide' : 'Create New Emergency Guide'}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-6 w-6" />
+          <button onClick={onClose} className="modal-close">
+            <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="modal-body">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div style={{padding: '12px', background: '#fee', border: '1px solid #fcc', borderRadius: '8px', color: '#c33', marginBottom: '16px'}}>
               {error}
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Guide Title *
-            </label>
+          <div className="form-group">
+            <label className="form-label">Guide Title *</label>
             <input
               type="text"
               name="title"
               required
               value={formData.title}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="form-input"
               placeholder="e.g., What to do during a fire"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category *
-            </label>
+          <div className="form-group">
+            <label className="form-label">Category *</label>
             <select
               name="category"
               required
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="form-input"
             >
               <option value="">Select a category</option>
               {CATEGORIES.map(cat => (
@@ -312,45 +307,62 @@ function GuideForm({ guide, onSubmit, onClose }) {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Summary *
-            </label>
+          <div className="form-group">
+            <label className="form-label">Summary *</label>
             <textarea
               name="summary"
               required
               value={formData.summary}
               onChange={handleChange}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="form-input"
               placeholder="Brief overview of this emergency guide..."
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Response Steps *
-            </label>
-            <div className="space-y-2">
+          <div className="form-group">
+            <label className="form-label" style={{marginBottom: '8px'}}>Response Steps *</label>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
               {formData.steps.map((step, index) => (
-                <div key={index} className="flex gap-2">
-                  <span className="flex-shrink-0 w-8 h-10 flex items-center justify-center bg-gray-100 rounded-lg text-sm font-medium text-gray-700">
+                <div key={index} style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+                  <span style={{
+                    flexShrink: 0,
+                    width: '32px',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#f1f5f9',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#172b49'
+                  }}>
                     {index + 1}
                   </span>
                   <input
                     type="text"
                     value={step}
                     onChange={(e) => handleStepChange(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="form-input"
                     placeholder={`Step ${index + 1}`}
+                    style={{flex: 1}}
                   />
                   {formData.steps.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeStep(index)}
-                      className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      style={{
+                        flexShrink: 0,
+                        padding: '8px',
+                        color: '#dc2626',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer'
+                      }}
                     >
-                      <Trash2 className="h-5 w-5" />
+                      <Trash2 size={20} />
                     </button>
                   )}
                 </div>
@@ -359,38 +371,44 @@ function GuideForm({ guide, onSubmit, onClose }) {
             <button
               type="button"
               onClick={addStep}
-              className="mt-2 text-sm text-red-600 hover:text-red-700 font-medium"
+              style={{
+                marginTop: '8px',
+                fontSize: '13px',
+                color: '#dc2626',
+                background: 'transparent',
+                border: 'none',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
             >
               + Add Step
             </button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Important Reminder
-            </label>
+          <div className="form-group">
+            <label className="form-label">Important Reminder</label>
             <input
               type="text"
               name="reminder"
               value={formData.reminder}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="form-input"
               placeholder="e.g., Always call emergency services first"
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="modal-footer">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="btn btn-danger"
             >
               {loading ? 'Saving...' : guide ? 'Update Guide' : 'Create Guide'}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="btn btn-secondary"
             >
               Cancel
             </button>

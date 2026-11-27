@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 import MainLayout from "./components/layout/MainLayout";
+import DashboardLayout from "./components/layout/DashboardLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 // Public Pages
@@ -39,12 +40,14 @@ function App() {
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
 
-        {/* Protected Routes */}
+        {/* Protected Routes with Dashboard Layout */}
         <Route element={<ProtectedRoute />}>
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="dashboard/reports" element={<ManageReportsPage />} />
-          <Route path="dashboard/services" element={<ManageServicesPage />} />
-          <Route path="dashboard/guides" element={<ManageGuidesPage />} />
+          <Route element={<DashboardLayout />}>
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="dashboard/reports" element={<ManageReportsPage />} />
+            <Route path="dashboard/services" element={<ManageServicesPage />} />
+            <Route path="dashboard/guides" element={<ManageGuidesPage />} />
+          </Route>
         </Route>
 
         {/* 404 */}
