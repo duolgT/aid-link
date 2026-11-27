@@ -18,6 +18,8 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VerifyCodePage from "./pages/VerifyCodePage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 // Protected Pages
 import DashboardPage from "./pages/DashboardPage";
@@ -43,6 +45,8 @@ function App() {
         <Route path="register" element={<RegisterPage />} />
         <Route path="verify-email" element={<VerifyEmailPage />} />
         <Route path="verify-code" element={<VerifyCodePage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
 
         {/* Protected Routes with Dashboard Layout */}
         <Route element={<ProtectedRoute />}>

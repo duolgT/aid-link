@@ -357,3 +357,123 @@ export const resendVerification = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Request password reset (send code to email)
+// @route   POST /api/auth/forgot-password
+// @access  Public
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Find organization
+    const organization = await Organization.findByEmail(normalizedEmail);
+
+    if (!organization) {
+      // Don't reveal if email exists or not (security)
+      return res.json({
+        success: true,
+        message: 'If an account exists with this email, you will receive a password reset code.'
+      });
+    }
+
+    if (!organization.is_verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email not verified. Please complete registration first.'
+      });
+    }
+
+    // Generate 6-digit reset code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetCodeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Update organization with reset code
+    await Organization.update(organization.id, {
+      reset_code: resetCode,
+      reset_code_expires: resetCodeExpires
+    });
+
+    // Send password reset email
+    try {
+      await sendPasswordResetEmail(normalizedEmail, organization.name, resetCode);
+      console.log('✅ Password reset code sent to:', normalizedEmail, 'Code:', resetCode);
+    } catch (emailError) {
+      console.error('⚠️ Failed to send password reset email:', emailError);
+    }
+
+    res.json({
+      success: true,
+      message: 'If an account exists with this email, you will receive a password reset code.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reset password with code
+// @route   POST /api/auth/reset-password
+// @access  Public
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { email, code, newPassword } = req.body;
+
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, code, and new password are required'
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long'
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Find organization with valid reset code
+    const [rows] = await Organization.query(
+      'SELECT * FROM organizations WHERE email = ? AND reset_code = ? AND reset_code_expires > NOW()',
+      [normalizedEmail, code]
+    );
+
+    const organization = rows[0];
+
+    if (!organization) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired reset code'
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and clear reset code
+    await Organization.update(organization.id, {
+      password: hashedPassword,
+      reset_code: null,
+      reset_code_expires: null
+    });
+
+    console.log('✅ Password reset successfully for:', normalizedEmail);
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully! You can now login with your new password.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

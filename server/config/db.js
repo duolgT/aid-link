@@ -42,9 +42,12 @@ export async function initializeDatabase() {
         password VARCHAR(255) NOT NULL,
         sector VARCHAR(100) NOT NULL,
         verified BOOLEAN DEFAULT FALSE,
+        reset_code VARCHAR(6),
+        reset_code_expires DATETIME,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX idx_email (email)
+        INDEX idx_email (email),
+        INDEX idx_reset_code (reset_code)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 

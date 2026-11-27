@@ -104,6 +104,11 @@ function LoginPage() {
               className="form-input"
               placeholder="Enter your password"
             />
+            <div style={{ marginTop: '8px', textAlign: 'right' }}>
+              <Link to="/forgot-password" style={{ fontSize: '14px', color: '#087c75' }}>
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <button
