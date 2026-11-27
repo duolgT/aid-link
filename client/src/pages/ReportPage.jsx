@@ -214,6 +214,41 @@ function ReportPage() {
                 <div className="saved-report-actions">
                   <button
                     type="button"
+                    className="btn btn-sm btn-primary"
+                    style={{marginRight: '8px'}}
+                    onClick={async () => {
+                      try {
+                        // Try to submit this pending report
+                        const response = await fetch(`${import.meta.env.VITE_API_URL}/reports`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            category: report.category,
+                            title: report.title,
+                            area: report.area,
+                            description: report.description,
+                            organizationId: report.organizationId
+                          })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                          // Delete from local storage after successful submission
+                          await handleDelete(report.id);
+                          setMessage("✅ Report submitted successfully!");
+                        } else {
+                          setError("Failed to submit report: " + data.message);
+                        }
+                      } catch (error) {
+                        setError("Failed to submit. Make sure backend server is running.");
+                      }
+                    }}
+                  >
+                    🔄 Retry Submission
+                  </button>
+                  <button
+                    type="button"
                     className="delete-report-btn"
                     disabled={deletingId === report.id}
                     onClick={() =>
@@ -223,7 +258,7 @@ function ReportPage() {
                     <Trash2 size={17} />
                     {deletingId === report.id
                       ? "Deleting..."
-                      : "Delete Pending Report"}
+                      : "Delete"}
                   </button>
                 </div>
               </article>
