@@ -1,4 +1,5 @@
-import { emergencyGuides, emergencyCategories } from '../data/emergencyGuides.js';
+import { EmergencyGuide } from '../models/EmergencyGuide.js';
+import { emergencyCategories } from '../data/emergencyGuides.js';
 import { validateEmergencyGuide } from '../utils/serviceValidation.js';
 
 // @desc    Get all emergency guides with optional filtering
@@ -8,32 +9,17 @@ export const getEmergencyGuides = async (req, res, next) => {
   try {
     const { category, search, verified } = req.query;
 
-    let filteredGuides = [...emergencyGuides];
+    const filters = {};
+    if (category) filters.category = category;
+    if (verified !== undefined) filters.verified = verified === 'true';
+    if (search) filters.search = search;
 
-    // Filter by category
-    if (category && category !== 'all') {
-      filteredGuides = filteredGuides.filter(g => g.category === category);
-    }
-
-    // Filter by verified status
-    if (verified !== undefined) {
-      const isVerified = verified === 'true';
-      filteredGuides = filteredGuides.filter(g => g.locallyVerified === isVerified);
-    }
-
-    // Search in title and summary
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filteredGuides = filteredGuides.filter(g =>
-        g.title.toLowerCase().includes(searchLower) ||
-        g.summary.toLowerCase().includes(searchLower)
-      );
-    }
+    const guides = await EmergencyGuide.findAll(filters);
 
     res.json({
       success: true,
-      count: filteredGuides.length,
-      data: filteredGuides
+      count: guides.length,
+      data: guides
     });
   } catch (error) {
     next(error);
@@ -47,7 +33,7 @@ export const getEmergencyGuideById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const guide = emergencyGuides.find(g => g.id === id);
+    const guide = await EmergencyGuide.findById(id);
 
     if (!guide) {
       return res.status(404).json({
@@ -96,21 +82,19 @@ export const createEmergencyGuide = async (req, res, next) => {
       });
     }
 
-    const newGuide = {
+    const newGuide = await EmergencyGuide.create({
       id: `guide-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: title.trim(),
       category,
       summary: summary.trim(),
       steps: steps.map(s => s.trim()),
       reminder: reminder?.trim() || null,
-      locallyVerified: false,
-      organizationId: req.organizationId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+      locally_verified: false,
+      organization_id: req.organizationId
+    });
 
     // In production, save to database
-    emergencyGuides.push(newGuide);
+    // emergencyGuides.push(newGuide);
 
     res.status(201).json({
       success: true,
@@ -130,19 +114,17 @@ export const updateEmergencyGuide = async (req, res, next) => {
     const { id } = req.params;
     const updates = req.body;
 
-    const guideIndex = emergencyGuides.findIndex(g => g.id === id);
+    const guide = await EmergencyGuide.findById(id);
 
-    if (guideIndex === -1) {
+    if (!guide) {
       return res.status(404).json({
         success: false,
         message: 'Emergency guide not found'
       });
     }
 
-    const guide = emergencyGuides[guideIndex];
-
     // Check if organization owns this guide
-    if (guide.organizationId && guide.organizationId !== req.organizationId) {
+    if (guide.organization_id && guide.organization_id !== req.organizationId) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this guide'
@@ -150,18 +132,12 @@ export const updateEmergencyGuide = async (req, res, next) => {
     }
 
     // Update guide
-    emergencyGuides[guideIndex] = {
-      ...guide,
-      ...updates,
-      id: guide.id, // Prevent ID change
-      organizationId: guide.organizationId, // Prevent org change
-      updatedAt: new Date().toISOString()
-    };
+    const updatedGuide = await EmergencyGuide.update(id, updates);
 
     res.json({
       success: true,
       message: 'Emergency guide updated successfully',
-      data: emergencyGuides[guideIndex]
+      data: updatedGuide
     });
   } catch (error) {
     next(error);
@@ -175,26 +151,24 @@ export const deleteEmergencyGuide = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const guideIndex = emergencyGuides.findIndex(g => g.id === id);
+    const guide = await EmergencyGuide.findById(id);
 
-    if (guideIndex === -1) {
+    if (!guide) {
       return res.status(404).json({
         success: false,
         message: 'Emergency guide not found'
       });
     }
 
-    const guide = emergencyGuides[guideIndex];
-
     // Check if organization owns this guide
-    if (guide.organizationId && guide.organizationId !== req.organizationId) {
+    if (guide.organization_id && guide.organization_id !== req.organizationId) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this guide'
       });
     }
 
-    emergencyGuides.splice(guideIndex, 1);
+    await EmergencyGuide.delete(id);
 
     res.json({
       success: true,

@@ -7,6 +7,7 @@ import reportRoutes from './routes/reportRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import emergencyGuideRoutes from './routes/emergencyGuideRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { testConnection, initializeDatabase } from './config/db.js';
 
 dotenv.config();
 
@@ -43,9 +44,30 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 AidLink API running on port ${PORT}`);
-  console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Initialize database and start server
+async function startServer() {
+  try {
+    // Test database connection
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      console.error('❌ Failed to connect to MySQL. Please check your database configuration.');
+      process.exit(1);
+    }
+
+    // Initialize database tables
+    await initializeDatabase();
+
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 AidLink API running on port ${PORT}`);
+      console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`💾 Database: MySQL (${process.env.DB_NAME})`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

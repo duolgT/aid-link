@@ -1,4 +1,5 @@
-import { db } from '../config/db.js';
+import { Report } from '../models/Report.js';
+import { Organization } from '../models/Organization.js';
 import { validateReport } from '../utils/validation.js';
 
 // @desc    Submit anonymous community challenge report
@@ -17,7 +18,7 @@ export const createReport = async (req, res, next) => {
       });
     }
 
-    const organization = db.findOrganizationById(organizationId);
+    const organization = await Organization.findById(organizationId);
     if (!organization) {
       return res.status(404).json({
         success: false,
@@ -25,12 +26,13 @@ export const createReport = async (req, res, next) => {
       });
     }
 
-    const report = db.createReport({
+    const report = await Report.create({
+      id: crypto.randomUUID(),
       category,
       title: title.trim(),
       area: area || 'Not specified',
       description: description.trim(),
-      organizationId,
+      organization_id: organizationId,
       urgency: urgency || 'medium'
     });
 
@@ -51,15 +53,11 @@ export const getOrganizationReports = async (req, res, next) => {
   try {
     const { status, urgency } = req.query;
 
-    let reports = db.getReportsByOrganization(req.organizationId);
+    const filters = {};
+    if (status) filters.status = status;
+    if (urgency) filters.urgency = urgency;
 
-    if (status) {
-      reports = reports.filter(report => report.status === status);
-    }
-
-    if (urgency) {
-      reports = reports.filter(report => report.urgency === urgency);
-    }
+    const reports = await Report.findByOrganization(req.organizationId, filters);
 
     res.json({
       success: true,
@@ -87,7 +85,7 @@ export const updateReportStatus = async (req, res, next) => {
       });
     }
 
-    const report = db.findReportById(id);
+    const report = await Report.findById(id);
     if (!report) {
       return res.status(404).json({
         success: false,
@@ -95,14 +93,14 @@ export const updateReportStatus = async (req, res, next) => {
       });
     }
 
-    if (report.organizationId !== req.organizationId) {
+    if (report.organization_id !== req.organizationId) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this report'
       });
     }
 
-    const updatedReport = db.updateReport(id, {
+    const updatedReport = await Report.update(id, {
       status,
       ...(notes && { notes })
     });
@@ -144,12 +142,13 @@ export const batchSyncReports = async (req, res, next) => {
         continue;
       }
 
-      const report = db.createReport({
+      const report = await Report.create({
+        id: crypto.randomUUID(),
         category: reportData.category,
         title: reportData.title.trim(),
         area: reportData.area || 'Not specified',
         description: reportData.description.trim(),
-        organizationId: reportData.organizationId,
+        organization_id: reportData.organizationId,
         urgency: reportData.urgency || 'medium'
       });
 

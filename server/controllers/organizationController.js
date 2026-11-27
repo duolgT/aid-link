@@ -1,11 +1,11 @@
-import { db } from '../config/db.js';
+import { Organization } from '../models/Organization.js';
 
 // @desc    Get all registered organizations (public endpoint for dropdown)
 // @route   GET /api/organizations
 // @access  Public
 export const getOrganizations = async (req, res, next) => {
   try {
-    const organizations = db.getAllOrganizations();
+    const organizations = await Organization.findAll();
 
     const publicOrgs = organizations.map(({ id, name, sector, verified }) => ({
       id,

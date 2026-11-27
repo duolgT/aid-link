@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { db } from '../config/db.js';
+import { Organization } from '../models/Organization.js';
 import { validateOrganization } from '../utils/validation.js';
 
 // @desc    Register humanitarian organization
@@ -19,7 +19,7 @@ export const register = async (req, res, next) => {
       });
     }
 
-    const existingOrg = db.findOrganizationByEmail(email);
+    const existingOrg = await Organization.findByEmail(email.toLowerCase().trim());
     if (existingOrg) {
       return res.status(409).json({
         success: false,
@@ -29,7 +29,8 @@ export const register = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const organization = db.createOrganization({
+    const organization = await Organization.create({
+      id: crypto.randomUUID(),
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
@@ -71,7 +72,7 @@ export const login = async (req, res, next) => {
       });
     }
 
-    const organization = db.findOrganizationByEmail(email.toLowerCase().trim());
+    const organization = await Organization.findByEmail(email.toLowerCase().trim());
     if (!organization) {
       return res.status(401).json({
         success: false,
@@ -113,7 +114,7 @@ export const login = async (req, res, next) => {
 // @access  Private
 export const getProfile = async (req, res, next) => {
   try {
-    const organization = db.findOrganizationById(req.organizationId);
+    const organization = await Organization.findById(req.organizationId);
 
     if (!organization) {
       return res.status(404).json({

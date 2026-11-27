@@ -1,4 +1,5 @@
-import { services, categories } from '../data/services.js';
+import { Service } from '../models/Service.js';
+import { categories } from '../data/services.js';
 import { validateService } from '../utils/serviceValidation.js';
 
 // @desc    Get all services with optional filtering
@@ -8,39 +9,18 @@ export const getServices = async (req, res, next) => {
   try {
     const { category, area, verified, search } = req.query;
 
-    let filteredServices = [...services];
+    const filters = {};
+    if (category) filters.category = category;
+    if (area) filters.area = area;
+    if (verified !== undefined) filters.verified = verified === 'true';
+    if (search) filters.search = search;
 
-    // Filter by category
-    if (category && category !== 'all') {
-      filteredServices = filteredServices.filter(s => s.category === category);
-    }
-
-    // Filter by area
-    if (area) {
-      filteredServices = filteredServices.filter(s => 
-        s.area?.toLowerCase().includes(area.toLowerCase())
-      );
-    }
-
-    // Filter by verified status
-    if (verified !== undefined) {
-      const isVerified = verified === 'true';
-      filteredServices = filteredServices.filter(s => s.verified === isVerified);
-    }
-
-    // Search in name and description
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filteredServices = filteredServices.filter(s =>
-        s.name.toLowerCase().includes(searchLower) ||
-        s.description.toLowerCase().includes(searchLower)
-      );
-    }
+    const services = await Service.findAll(filters);
 
     res.json({
       success: true,
-      count: filteredServices.length,
-      data: filteredServices
+      count: services.length,
+      data: services
     });
   } catch (error) {
     next(error);
@@ -54,7 +34,7 @@ export const getServiceById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const service = services.find(s => s.id === id);
+    const service = await Service.findById(id);
 
     if (!service) {
       return res.status(404).json({
@@ -103,24 +83,22 @@ export const createService = async (req, res, next) => {
       });
     }
 
-    const newService = {
+    const newService = await Service.create({
       id: `service-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
       category,
       area: area?.trim() || 'Not specified',
       description: description.trim(),
-      servicesOffered: servicesOffered.map(s => s.trim()),
+      services_offered: servicesOffered.map(s => s.trim()),
       coordinates: coordinates || null,
       phone: phone?.trim() || null,
       verified: false,
-      isDemo: false,
-      organizationId: req.organizationId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+      is_demo: false,
+      organization_id: req.organizationId
+    });
 
     // In production, save to database
-    services.push(newService);
+    // services.push(newService);
 
     res.status(201).json({
       success: true,
@@ -140,19 +118,17 @@ export const updateService = async (req, res, next) => {
     const { id } = req.params;
     const updates = req.body;
 
-    const serviceIndex = services.findIndex(s => s.id === id);
+    const service = await Service.findById(id);
 
-    if (serviceIndex === -1) {
+    if (!service) {
       return res.status(404).json({
         success: false,
         message: 'Service not found'
       });
     }
 
-    const service = services[serviceIndex];
-
     // Check if organization owns this service
-    if (service.organizationId && service.organizationId !== req.organizationId) {
+    if (service.organization_id && service.organization_id !== req.organizationId) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this service'
@@ -160,18 +136,12 @@ export const updateService = async (req, res, next) => {
     }
 
     // Update service
-    services[serviceIndex] = {
-      ...service,
-      ...updates,
-      id: service.id, // Prevent ID change
-      organizationId: service.organizationId, // Prevent org change
-      updatedAt: new Date().toISOString()
-    };
+    const updatedService = await Service.update(id, updates);
 
     res.json({
       success: true,
       message: 'Service updated successfully',
-      data: services[serviceIndex]
+      data: updatedService
     });
   } catch (error) {
     next(error);
@@ -185,26 +155,24 @@ export const deleteService = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const serviceIndex = services.findIndex(s => s.id === id);
+    const service = await Service.findById(id);
 
-    if (serviceIndex === -1) {
+    if (!service) {
       return res.status(404).json({
         success: false,
         message: 'Service not found'
       });
     }
 
-    const service = services[serviceIndex];
-
     // Check if organization owns this service
-    if (service.organizationId && service.organizationId !== req.organizationId) {
+    if (service.organization_id && service.organization_id !== req.organizationId) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this service'
       });
     }
 
-    services.splice(serviceIndex, 1);
+    await Service.delete(id);
 
     res.json({
       success: true,
