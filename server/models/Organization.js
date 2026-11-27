@@ -1,12 +1,19 @@
 import pool from '../config/db.js';
 
 export const Organization = {
+  // Raw query method for custom queries
+  async query(sql, params) {
+    return await pool.query(sql, params);
+  },
+
   // Create new organization
   async create(orgData) {
-    const { id, name, email, password, sector } = orgData;
+    const { id, name, email, password, sector, is_verified, verification_token, verification_token_expires } = orgData;
     const [result] = await pool.query(
-      'INSERT INTO organizations (id, name, email, password, sector) VALUES (?, ?, ?, ?, ?)',
-      [id, name, email, password, sector]
+      `INSERT INTO organizations 
+       (id, name, email, password, sector, is_verified, verification_token, verification_token_expires) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, name, email, password, sector, is_verified || false, verification_token || null, verification_token_expires || null]
     );
     return this.findById(id);
   },
