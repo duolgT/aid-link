@@ -1,7 +1,7 @@
-
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const links = [
   { label: "Home", path: "/" },
@@ -12,6 +12,14 @@ const links = [
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    setMenuOpen(false);
+    navigate('/');
+  }
 
   return (
     <>
@@ -44,6 +52,43 @@ function Navbar() {
             {link.label}
           </NavLink>
         ))}
+
+        {/* Auth Links */}
+        {isAuthenticated ? (
+          <>
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                `nav-link ${isActive ? "active" : ""}`
+              }
+              onClick={() => setMenuOpen(false)}
+            >
+              <LayoutDashboard size={18} className="inline mr-1" />
+              Dashboard
+            </NavLink>
+            <div className="nav-user-info">
+              <span className="text-sm text-gray-600">{user?.name}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="nav-link logout-btn"
+            >
+              <LogOut size={18} className="inline mr-1" />
+              Logout
+            </button>
+          </>
+        ) : (
+          <NavLink
+            to="/login"
+            className={({ isActive }) =>
+              `nav-link login-btn ${isActive ? "active" : ""}`
+            }
+            onClick={() => setMenuOpen(false)}
+          >
+            <User size={18} className="inline mr-1" />
+            Login
+          </NavLink>
+        )}
       </nav>
     </>
   );

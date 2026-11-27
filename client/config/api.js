@@ -171,6 +171,48 @@ export const API = {
 
   async getProfile() {
     return apiRequest(API_ENDPOINTS.AUTH.ME);
+  },
+
+  // Services Management (Protected)
+  async createService(serviceData) {
+    return apiRequest(API_ENDPOINTS.SERVICES.CREATE, {
+      method: 'POST',
+      body: JSON.stringify(serviceData)
+    });
+  },
+
+  async updateService(id, serviceData) {
+    return apiRequest(API_ENDPOINTS.SERVICES.UPDATE(id), {
+      method: 'PATCH',
+      body: JSON.stringify(serviceData)
+    });
+  },
+
+  async deleteService(id) {
+    return apiRequest(API_ENDPOINTS.SERVICES.DELETE(id), {
+      method: 'DELETE'
+    });
+  },
+
+  // Emergency Guides Management (Protected)
+  async createEmergencyGuide(guideData) {
+    return apiRequest(API_ENDPOINTS.EMERGENCY_GUIDES.CREATE, {
+      method: 'POST',
+      body: JSON.stringify(guideData)
+    });
+  },
+
+  async updateEmergencyGuide(id, guideData) {
+    return apiRequest(API_ENDPOINTS.EMERGENCY_GUIDES.UPDATE(id), {
+      method: 'PATCH',
+      body: JSON.stringify(guideData)
+    });
+  },
+
+  async deleteEmergencyGuide(id) {
+    return apiRequest(API_ENDPOINTS.EMERGENCY_GUIDES.DELETE(id), {
+      method: 'DELETE'
+    });
   }
 };
 
