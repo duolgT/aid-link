@@ -9,8 +9,8 @@
 import { openDB } from "idb";
 
 // Database Configuration
-const DATABASE_NAME = import.meta.env.VITE_DATABASE_NAME || "aidlink-kakuma-db";
-const DATABASE_VERSION = 2; // Incremented for new schema
+const DATABASE_NAME = import.meta.env.VITE_DATABASE_NAME || "aidlink_kakuma";
+const DATABASE_VERSION = parseInt(import.meta.env.VITE_DATABASE_VERSION) || 2;
 const STORES = {
   REPORTS: "reports",
   SERVICES: "services",
