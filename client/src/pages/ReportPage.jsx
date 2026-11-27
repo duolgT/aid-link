@@ -51,9 +51,19 @@ function ReportPage() {
   }, []);
 
   function handleReportSaved(report) {
-    setReports((previous) => [report, ...previous]);
-    setMessage("Your draft was saved on this device.");
-    setError("");
+    // Check if report was successfully submitted to backend
+    if (report.syncStatus === 'synced' || report.serverId) {
+      setMessage("✅ Report submitted successfully to the organization!");
+      setError("");
+      // Don't add to local list if it was submitted to backend
+    } else {
+      setReports((previous) => [report, ...previous]);
+      setMessage("⚠️ Report saved locally. It will be sent when you're online.");
+      setError("");
+    }
+    
+    // Clear message after 5 seconds
+    setTimeout(() => setMessage(""), 5000);
   }
 
   async function handleDelete(id) {
@@ -102,11 +112,9 @@ function ReportPage() {
       <div className="report-warning" role="note">
         <Info size={23} aria-hidden="true" />
         <p>
-          This is a local prototype, not an official
-          complaint or emergency reporting channel.
-          Reports are not sent to anyone. For urgent
-          or sensitive concerns, seek help directly
-          from an appropriate trusted service.
+          Submit community reports directly to humanitarian organizations.
+          Your report will be reviewed and appropriate action will be taken.
+          For urgent emergencies, please contact emergency services directly.
         </p>
       </div>
 
@@ -130,21 +138,20 @@ function ReportPage() {
         <aside className="report-sidebar">
           <div className="report-stat-card">
             <Database size={25} />
-            <span>Saved Local Drafts</span>
+            <span>Pending Submissions</span>
             <strong>{reports.length}</strong>
-            <p>Stored on this device only</p>
+            <p>Waiting to be sent</p>
           </div>
 
           <div className="report-info-card">
             <h3>How it works</h3>
             <p>
-              Create a report, save it in your browser,
-              and review it below.
+              Select an organization, describe the challenge, and submit your report.
+              The organization will receive it and take appropriate action.
             </p>
             <p>
-              No account or internet connection is
-              required for the database operations
-              after this page has loaded.
+              Reports are submitted immediately when online, or saved locally
+              to send later if you're offline.
             </p>
           </div>
         </aside>
@@ -152,19 +159,18 @@ function ReportPage() {
 
       <section className="saved-reports">
         <div className="saved-reports-heading">
-          <h2>My Saved Reports</h2>
-          <span>{reports.length} local drafts</span>
+          <h2>Pending Reports</h2>
+          <span>{reports.length} waiting to be sent</span>
         </div>
 
         {isLoading ? (
-          <p>Loading locally saved reports...</p>
+          <p>Loading pending reports...</p>
         ) : reports.length === 0 ? (
           <div className="reports-empty">
             <ClipboardList size={38} />
-            <h3>No saved reports yet</h3>
+            <h3>No pending reports</h3>
             <p>
-              Use the form above to create your first
-              community report.
+              Reports are submitted immediately to organizations when you have an internet connection.
             </p>
           </div>
         ) : (
@@ -182,7 +188,7 @@ function ReportPage() {
                   </span>
 
                   <span className="report-local-status">
-                    Local draft
+                    Pending submission
                   </span>
                 </div>
 
@@ -217,7 +223,7 @@ function ReportPage() {
                     <Trash2 size={17} />
                     {deletingId === report.id
                       ? "Deleting..."
-                      : "Delete Draft"}
+                      : "Delete Pending Report"}
                   </button>
                 </div>
               </article>

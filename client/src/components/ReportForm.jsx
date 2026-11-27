@@ -90,16 +90,42 @@ function ReportForm({ onSaved }) {
     setError("");
 
     try {
-      const savedReport = await saveReport({
+      const reportData = {
         category: form.category,
         title,
         area: form.area || "Not specified",
         description,
         organizationId: form.organizationId,
-      });
+      };
 
+      // Try to submit to backend first
+      try {
+        const response = await API.createReport(reportData);
+        
+        if (response.success) {
+          console.log('✅ Report submitted to backend:', response.data);
+          
+          // Also save locally for offline access
+          await saveReport({
+            ...reportData,
+            serverId: response.data.id,
+            syncStatus: 'synced'
+          });
+          
+          setForm({ ...initialValues });
+          onSaved?.(response.data);
+          return;
+        }
+      } catch (apiError) {
+        console.warn('⚠️ Backend submission failed, saving locally:', apiError);
+        // If backend fails, save locally with pending sync status
+      }
+
+      // Fallback: Save locally if backend submission failed
+      const savedReport = await saveReport(reportData);
       setForm({ ...initialValues });
       onSaved?.(savedReport);
+      
     } catch (err) {
       console.error("Report save failed:", err);
       setError(
@@ -260,12 +286,11 @@ function ReportForm({ onSaved }) {
         disabled={isSaving}
       >
         <Save size={19} />
-        {isSaving ? "Saving..." : "Save Report Locally"}
+        {isSaving ? "Submitting..." : "Submit Report"}
       </button>
 
       <p className="form-disclaimer">
-        Saving a report does not submit it to an organization
-        or trigger an emergency response.
+        Your report will be sent to the selected organization for review and action.
       </p>
     </form>
   );
