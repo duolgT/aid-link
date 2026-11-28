@@ -1,8 +1,10 @@
 ﻿
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 
-import { services } from "../data/services";
+import { services as staticServices } from "../data/services";
+import { getCachedServices } from "../lib/db";
+import API from "../config/api";
 import SearchBar from "../components/SearchBar";
 import CategoryFilter from "../components/CategoryFilter";
 import ServiceCard from "../components/ServiceCard";
@@ -10,8 +12,47 @@ import ServiceMap from "../components/ServiceMap";
 
 function ServicesPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] =
-    useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [services, setServices] = useState(staticServices);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadServices();
+  }, []);
+
+  async function loadServices() {
+    try {
+      setLoading(true);
+      
+      // Try to fetch from API first
+      if (navigator.onLine) {
+        try {
+          const response = await API.getServices();
+          if (response.success && response.data && response.data.length > 0) {
+            setServices(response.data);
+            setLoading(false);
+            return;
+          }
+        } catch (apiError) {
+          console.warn('Failed to fetch services from API, using cache:', apiError);
+        }
+      }
+
+      // Fallback to cached data
+      const cached = await getCachedServices();
+      if (cached && cached.length > 0) {
+        setServices(cached);
+      } else {
+        // Ultimate fallback to static data
+        setServices(staticServices);
+      }
+    } catch (error) {
+      console.error('Failed to load services:', error);
+      setServices(staticServices); // Fallback to static
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const query = searchQuery.trim().toLowerCase();
 
@@ -25,7 +66,7 @@ function ServicesPage() {
       service.category,
       service.area,
       service.description,
-      ...service.servicesOffered,
+      ...(service.servicesOffered || []),
     ]
       .join(" ")
       .toLowerCase();
@@ -39,6 +80,20 @@ function ServicesPage() {
   function clearFilters() {
     setSearchQuery("");
     setSelectedCategory("all");
+  }
+
+  if (loading) {
+    return (
+      <section className="services-page container">
+        <div className="services-heading">
+          <p className="eyebrow">Community directory</p>
+          <h1>Find Essential Services</h1>
+        </div>
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          <p>Loading services...</p>
+        </div>
+      </section>
+    );
   }
 
   return (

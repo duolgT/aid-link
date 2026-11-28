@@ -64,7 +64,11 @@ function ReportForm({ onSaved }) {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (savingRef.current) return;
+    // Prevent double submission with ref check
+    if (savingRef.current || isSaving) {
+      console.log('⚠️ Submission already in progress, ignoring duplicate request');
+      return;
+    }
 
     const title = form.title.trim();
     const description = form.description.trim();
@@ -85,6 +89,7 @@ function ReportForm({ onSaved }) {
       return;
     }
 
+    // Set both ref and state to prevent any double submission
     savingRef.current = true;
     setIsSaving(true);
     setError("");
@@ -96,44 +101,54 @@ function ReportForm({ onSaved }) {
         area: form.area || "Not specified",
         description,
         organizationId: form.organizationId,
+        urgency: "medium" // Default urgency
       };
 
       // Try to submit to backend first
+      let submitted = false;
       try {
         const response = await API.createReport(reportData);
         
         if (response.success) {
           console.log('✅ Report submitted to backend:', response.data);
           
-          // Also save locally for offline access
+          // Also save locally for offline access with synced status
           await saveReport({
             ...reportData,
             serverId: response.data.id,
-            syncStatus: 'synced'
+            syncStatus: 'synced',
+            status: 'pending'
           });
           
+          submitted = true;
           setForm({ ...initialValues });
           onSaved?.(response.data);
           return;
         }
       } catch (apiError) {
-        console.warn('⚠️ Backend submission failed, saving locally:', apiError);
-        // If backend fails, save locally with pending sync status
+        console.warn('⚠️ Backend submission failed, saving locally for sync:', apiError);
+        // Continue to fallback - save locally with pending sync status
       }
 
       // Fallback: Save locally if backend submission failed
-      const savedReport = await saveReport(reportData);
-      setForm({ ...initialValues });
-      onSaved?.(savedReport);
+      if (!submitted) {
+        const savedReport = await saveReport(reportData);
+        console.log('💾 Report saved locally, will sync when online:', savedReport.id);
+        setForm({ ...initialValues });
+        onSaved?.(savedReport);
+      }
       
     } catch (err) {
-      console.error("Report save failed:", err);
+      console.error("❌ Report save failed:", err);
       setError(
         "Unable to save this report. Check your browser storage settings and try again."
       );
     } finally {
-      savingRef.current = false;
-      setIsSaving(false);
+      // Add small delay before allowing next submission to prevent rapid double-clicks
+      setTimeout(() => {
+        savingRef.current = false;
+        setIsSaving(false);
+      }, 1000);
     }
   }
 

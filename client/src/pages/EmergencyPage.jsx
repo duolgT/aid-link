@@ -10,9 +10,11 @@ import {
 } from "lucide-react";
 
 import {
-  emergencyGuides,
+  emergencyGuides as staticGuides,
   emergencyCategories,
 } from "../data/emergencyGuides";
+import { getCachedEmergencyGuides } from "../lib/db";
+import API from "../config/api";
 
 const STORAGE_KEY = "aidlink:saved-emergency-guides";
 
@@ -20,6 +22,8 @@ function EmergencyPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [savedOnly, setSavedOnly] = useState(false);
+  const [emergencyGuides, setEmergencyGuides] = useState(staticGuides);
+  const [loading, setLoading] = useState(true);
 
   const [savedIds, setSavedIds] = useState(() => {
     try {
@@ -31,6 +35,44 @@ function EmergencyPage() {
       return [];
     }
   });
+
+  useEffect(() => {
+    loadGuides();
+  }, []);
+
+  async function loadGuides() {
+    try {
+      setLoading(true);
+      
+      // Try to fetch from API first
+      if (navigator.onLine) {
+        try {
+          const response = await API.getEmergencyGuides();
+          if (response.success && response.data && response.data.length > 0) {
+            setEmergencyGuides(response.data);
+            setLoading(false);
+            return;
+          }
+        } catch (apiError) {
+          console.warn('Failed to fetch guides from API, using cache:', apiError);
+        }
+      }
+
+      // Fallback to cached data
+      const cached = await getCachedEmergencyGuides();
+      if (cached && cached.length > 0) {
+        setEmergencyGuides(cached);
+      } else {
+        // Ultimate fallback to static data
+        setEmergencyGuides(staticGuides);
+      }
+    } catch (error) {
+      console.error('Failed to load emergency guides:', error);
+      setEmergencyGuides(staticGuides); // Fallback to static
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     try {
@@ -57,7 +99,7 @@ function EmergencyPage() {
     const matchesSearch = [
       guide.title,
       guide.summary,
-      ...guide.steps,
+      ...(guide.steps || []),
     ]
       .join(" ")
       .toLowerCase()
@@ -71,6 +113,23 @@ function EmergencyPage() {
 
     return matchesSearch && matchesCategory && matchesSaved;
   });
+
+  if (loading) {
+    return (
+      <div className="emergency-page container">
+        <section className="emergency-hero">
+          <p className="eyebrow">
+            <ShieldAlert size={18} />
+            Community Safety
+          </p>
+          <h1>Emergency Guides</h1>
+        </section>
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          <p>Loading emergency guides...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="emergency-page container">
