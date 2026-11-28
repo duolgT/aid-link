@@ -70,19 +70,9 @@ function RegisterPage() {
       });
 
       if (result.success) {
-        // Check if email failed in development
-        if (result.data?.devCode) {
-          // Show alert with code for development
-          alert(`⚠️ Email sending failed!\n\nYour verification code is: ${result.data.devCode}\n\nThis will also appear in the browser console and server logs.`);
-          console.log('🔐 VERIFICATION CODE:', result.data.devCode);
-        }
-        
         // Redirect to verification code page with email
         navigate('/verify-code', {
-          state: { 
-            email: formData.email,
-            devCode: result.data?.devCode // Pass code if email failed
-          },
+          state: { email: formData.email },
           replace: true
         });
       } else {

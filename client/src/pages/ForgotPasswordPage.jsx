@@ -25,21 +25,9 @@ function ForgotPasswordPage() {
 
       if (data.success) {
         setSuccess(true);
-        
-        // Show dev code if email failed
-        if (data.devCode) {
-          alert(`⚠️ Email sending failed!\n\nYour password reset code is: ${data.devCode}\n\nThis will also appear in the browser console and server logs.`);
-          console.log('🔐 PASSWORD RESET CODE:', data.devCode);
-        }
-        
         // Redirect to reset password page after 2 seconds
         setTimeout(() => {
-          navigate('/reset-password', { 
-            state: { 
-              email,
-              devCode: data.devCode // Pass code if email failed
-            } 
-          });
+          navigate('/reset-password', { state: { email } });
         }, 2000);
       } else {
         setError(data.message || 'Failed to send reset code');

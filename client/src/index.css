@@ -2608,3 +2608,804 @@ select.form-input {
   background-position: right 12px center;
   padding-right: 36px;
 }
+
+
+/* ============================================
+   ENHANCED MOBILE RESPONSIVENESS
+   ============================================ */
+
+/* Mobile Navigation Improvements */
+@media (max-width: 768px) {
+  .nav-links {
+    gap: 12px;
+  }
+  
+  .nav-link {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+  
+  .btn-primary {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Touch-Friendly Buttons */
+@media (max-width: 768px) {
+  button,
+  .btn,
+  .nav-link,
+  .card {
+    min-height: 44px; /* Apple's recommended touch target */
+    min-width: 44px;
+  }
+  
+  /* Larger tap targets for icons */
+  .icon-button {
+    padding: 12px;
+  }
+}
+
+/* Mobile Typography */
+@media (max-width: 640px) {
+  :root {
+    font-size: 15px;
+  }
+  
+  h1 {
+    font-size: 28px;
+  }
+  
+  h2 {
+    font-size: 24px;
+  }
+  
+  h3 {
+    font-size: 20px;
+  }
+  
+  .hero-title {
+    font-size: 32px;
+    line-height: 1.2;
+  }
+  
+  .hero-subtitle {
+    font-size: 16px;
+  }
+}
+
+/* Mobile Forms */
+@media (max-width: 640px) {
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px 16px;
+  }
+  
+  .form-label {
+    font-size: 14px;
+  }
+}
+
+/* Mobile Cards and Grids */
+@media (max-width: 640px) {
+  .services-grid,
+  .emergency-grid,
+  .report-grid,
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .card {
+    padding: 16px;
+  }
+}
+
+/* Mobile Spacing */
+@media (max-width: 640px) {
+  .container {
+    width: 95%;
+  }
+  
+  section {
+    padding: 40px 0;
+  }
+  
+  .page {
+    padding: 24px 0;
+  }
+}
+
+/* Mobile Dashboard */
+@media (max-width: 768px) {
+  .dashboard-layout {
+    display: block;
+    padding-top: 60px; /* Space for fixed mobile header */
+  }
+  
+  .dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    height: 100vh;
+    width: 280px;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    box-shadow: none;
+  }
+  
+  .dashboard-sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .dashboard-main {
+    margin-left: 0;
+    padding: 20px 16px;
+    min-height: calc(100vh - 60px);
+  }
+  
+  /* Mobile dashboard header with menu button */
+  .dashboard-mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: white;
+    border-bottom: 1px solid #e5eaf0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    height: 60px;
+  }
+  
+  .mobile-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: #f1f5f9;
+    color: #087c75;
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  
+  .mobile-menu-button:active {
+    background: #e2e8f0;
+    transform: scale(0.95);
+  }
+  
+  /* Overlay for mobile sidebar */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  /* Adjust brand in mobile header */
+  .dashboard-mobile-header .brand-icon {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .dashboard-mobile-header .brand-text strong {
+    font-size: 18px;
+  }
+  
+  .dashboard-mobile-header .brand-text small {
+    font-size: 10px;
+  }
+  
+  /* Stats grid on mobile */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  /* Cards on mobile */
+  .report-card,
+  .service-card,
+  .guide-card {
+    padding: 16px;
+  }
+  
+  /* Page headers on mobile */
+  .page-header h1 {
+    font-size: 24px;
+  }
+  
+  .page-header p {
+    font-size: 14px;
+  }
+  
+  /* Buttons on mobile */
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Action buttons in cards */
+  .card-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .card-actions button {
+    width: 100%;
+  }
+}
+
+/* Larger screens - hide mobile menu */
+@media (min-width: 769px) {
+  .dashboard-mobile-header,
+  .mobile-menu-button,
+  .sidebar-overlay {
+    display: none !important;
+  }
+  
+  .dashboard-sidebar {
+    left: 0 !important;
+  }
+  
+  .dashboard-layout {
+    padding-top: 0 !important;
+  }
+}
+
+/* Mobile Auth Pages */
+@media (max-width: 640px) {
+  .auth-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 24px 20px;
+  }
+  
+  .auth-card {
+    padding: 24px 20px;
+  }
+  
+  .auth-title {
+    font-size: 24px;
+  }
+  
+  .auth-subtitle {
+    font-size: 14px;
+  }
+}
+
+/* Mobile Modals and Overlays */
+@media (max-width: 640px) {
+  .modal,
+  .overlay {
+    padding: 20px;
+  }
+  
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 12px 12px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+}
+
+/* Mobile Tables - Make Scrollable */
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 600px;
+  }
+}
+
+/* Mobile Footer */
+@media (max-width: 640px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .footer-links {
+    text-align: center;
+  }
+}
+
+/* PWA Install Prompt - Mobile Optimized */
+@media (max-width: 640px) {
+  .pwa-install-prompt {
+    bottom: 80px; /* Above mobile browser chrome */
+    left: 12px;
+    right: 12px;
+    padding: 16px;
+  }
+}
+
+/* Safe Areas for iPhone Notch */
+@supports (padding: env(safe-area-inset-top)) {
+  .site-header {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .dashboard-mobile-header {
+    padding-top: calc(16px + env(safe-area-inset-top));
+  }
+  
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Landscape Mobile Optimization */
+@media (max-width: 896px) and (orientation: landscape) {
+  .hero {
+    padding: 60px 0;
+  }
+  
+  .hero-title {
+    font-size: 36px;
+  }
+  
+  .dashboard-sidebar {
+    width: 240px;
+  }
+}
+
+/* Prevent text selection on tap (better mobile UX) */
+button,
+.card,
+.nav-link {
+  -webkit-tap-highlight-color: rgba(8, 124, 117, 0.1);
+  user-select: none;
+}
+
+/* Smooth scrolling on mobile */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Better focus states for accessibility */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile/touch devices */
+  button:focus,
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: 2px solid #087c75;
+    outline-offset: 2px;
+  }
+}
+
+
+/* ============================================
+   ENHANCED DASHBOARD MOBILE STYLES
+   ============================================ */
+
+/* Small Mobile Devices (iPhone SE, etc.) */
+@media (max-width: 375px) {
+  .dashboard-mobile-header {
+    padding: 10px 12px;
+  }
+  
+  .dashboard-main {
+    padding: 16px 12px;
+  }
+  
+  .mobile-menu-button {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .dashboard-mobile-header .brand-text strong {
+    font-size: 16px;
+  }
+  
+  .page-header h1 {
+    font-size: 22px;
+  }
+}
+
+/* Management Cards Mobile Optimization */
+@media (max-width: 768px) {
+  /* Report Cards */
+  .report-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  .report-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .report-card-title {
+    font-size: 16px;
+  }
+  
+  .report-card-meta {
+    font-size: 13px;
+  }
+  
+  .status-badge {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+  
+  /* Service Cards */
+  .service-card {
+    padding: 16px;
+  }
+  
+  .service-card-title {
+    font-size: 16px;
+  }
+  
+  .service-card-description {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  /* Guide Cards */
+  .guide-card {
+    padding: 16px;
+  }
+  
+  .guide-card-title {
+    font-size: 16px;
+  }
+  
+  /* Stats Cards */
+  .stat-card {
+    padding: 20px 16px;
+  }
+  
+  .stat-value {
+    font-size: 28px;
+  }
+  
+  .stat-label {
+    font-size: 13px;
+  }
+  
+  /* Empty States */
+  .empty-state {
+    padding: 40px 20px;
+  }
+  
+  .empty-state h3 {
+    font-size: 18px;
+  }
+  
+  .empty-state p {
+    font-size: 14px;
+  }
+}
+
+/* Touch-Friendly Interactive Elements */
+@media (max-width: 768px) {
+  /* All buttons minimum 44px height */
+  .btn,
+  button:not(.icon-only) {
+    min-height: 44px;
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+  
+  /* Icon buttons */
+  .icon-button,
+  button.icon-only {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+  }
+  
+  /* Links in sidebar */
+  .sidebar-link {
+    min-height: 48px;
+    padding: 12px 16px;
+    font-size: 15px;
+  }
+  
+  /* Card click areas */
+  .report-card,
+  .service-card,
+  .guide-card {
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(8, 124, 117, 0.1);
+  }
+  
+  .report-card:active,
+  .service-card:active,
+  .guide-card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+}
+
+/* Mobile Tables - Make Responsive */
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  
+  table {
+    min-width: 600px;
+    font-size: 14px;
+  }
+  
+  th, td {
+    padding: 10px;
+  }
+}
+
+/* Mobile Modals */
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 0;
+  }
+  
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    min-height: 50vh;
+    border-radius: 20px 20px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    animation: slideUp 0.3s ease;
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  
+  .modal-header {
+    padding: 20px 16px 16px;
+  }
+  
+  .modal-body {
+    padding: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  
+  .modal-footer {
+    padding: 16px;
+    border-top: 1px solid #e5eaf0;
+    position: sticky;
+    bottom: 0;
+    background: white;
+  }
+}
+
+/* Mobile Forms in Dashboard */
+@media (max-width: 640px) {
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-label {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: 16px; /* Prevents iOS zoom */
+    padding: 12px 16px;
+    border-radius: 10px;
+  }
+  
+  .form-textarea {
+    min-height: 120px;
+  }
+  
+  /* Form button groups */
+  .form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+/* Mobile Filters and Search */
+@media (max-width: 768px) {
+  .page-controls {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .search-box,
+  .filter-dropdown {
+    width: 100%;
+  }
+  
+  .search-input {
+    width: 100%;
+    font-size: 16px;
+  }
+}
+
+/* Mobile Empty States */
+@media (max-width: 640px) {
+  .empty-state-icon {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .empty-state-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Better Scrolling on Mobile */
+@media (max-width: 768px) {
+  .dashboard-main {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .dashboard-main::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .dashboard-main {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Safe Areas for Notch Devices */
+@supports (padding: env(safe-area-inset-top)) {
+  @media (max-width: 768px) {
+    .dashboard-mobile-header {
+      padding-top: calc(12px + env(safe-area-inset-top));
+      height: calc(60px + env(safe-area-inset-top));
+    }
+    
+    .dashboard-layout {
+      padding-top: calc(60px + env(safe-area-inset-top));
+    }
+    
+    .dashboard-main {
+      padding-left: calc(16px + env(safe-area-inset-left));
+      padding-right: calc(16px + env(safe-area-inset-right));
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+    
+    .dashboard-sidebar {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+}
+
+/* Landscape Mode Optimization */
+@media (max-width: 896px) and (orientation: landscape) {
+  .dashboard-mobile-header {
+    height: 50px;
+    padding: 8px 16px;
+  }
+  
+  .dashboard-layout {
+    padding-top: 50px;
+  }
+  
+  .dashboard-sidebar {
+    width: 240px;
+  }
+  
+  .mobile-menu-button {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .dashboard-mobile-header .brand-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Very Small Screens (Galaxy Fold) */
+@media (max-width: 320px) {
+  .dashboard-mobile-header {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  
+  .mobile-menu-button {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .dashboard-mobile-header .brand-text strong {
+    font-size: 14px;
+  }
+  
+  .dashboard-mobile-header .brand-text small {
+    display: none;
+  }
+  
+  .dashboard-main {
+    padding: 12px 10px;
+  }
+  
+  .page-header h1 {
+    font-size: 20px;
+  }
+  
+  .stat-card {
+    padding: 16px 12px;
+  }
+}
+
+/* Loading States */
+@media (max-width: 768px) {
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .loading-text {
+    font-size: 14px;
+  }
+}
+
+/* Toast Notifications on Mobile */
+@media (max-width: 640px) {
+  .toast {
+    left: 12px;
+    right: 12px;
+    bottom: 20px;
+    width: auto;
+  }
+}
