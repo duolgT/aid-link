@@ -7,6 +7,7 @@ const links = [
   { label: "Home", path: "/" },
   { label: "Find Services", path: "/services" },
   { label: "Emergency Guide", path: "/emergency" },
+  { label: "Community Challenges", path: "/community-challenges" },
   { label: "Report an Issue", path: "/report" },
 ];
 

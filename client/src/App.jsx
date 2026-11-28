@@ -10,6 +10,8 @@ import HomePage from "./pages/HomePage";
 import ServicesPage from "./pages/ServicesPage";
 import ServiceDetailsPage from "./pages/ServiceDetailsPage";
 import EmergencyPage from "./pages/EmergencyPage";
+import EmergencyDetailPage from "./pages/EmergencyDetailPage";
+import CommunityChallengePage from "./pages/CommunityChallengePage";
 import ReportPage from "./pages/ReportPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -37,6 +39,8 @@ function App() {
           <Route path="services" element={<ServicesPage />} />
           <Route path="services/:id" element={<ServiceDetailsPage />} />
           <Route path="emergency" element={<EmergencyPage />} />
+          <Route path="emergency/:id" element={<EmergencyDetailPage />} />
+          <Route path="community-challenges" element={<CommunityChallengePage />} />
           <Route path="report" element={<ReportPage />} />
         </Route>
 
