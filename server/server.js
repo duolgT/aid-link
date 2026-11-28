@@ -16,7 +16,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'https://aidlinkkakuma.vercel.app',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -51,7 +54,7 @@ async function startServer() {
     // Test database connection
     const isConnected = await testConnection();
     if (!isConnected) {
-      console.error('❌ Failed to connect to MySQL. Please check your database configuration.');
+      console.error('❌ Failed to connect to PostgreSQL. Please check your database configuration.');
       process.exit(1);
     }
 
@@ -73,7 +76,7 @@ async function startServer() {
       console.log(`🚀 AidLink API running on port ${PORT}`);
       console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`💾 Database: MySQL (${process.env.DB_NAME})`);
+      console.log(`💾 Database: PostgreSQL (Neon)`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
