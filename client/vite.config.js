@@ -115,4 +115,24 @@ export default defineConfig({
       },
     }),
   ],
+  
+  // Build configuration for Vercel
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    // Increase chunk size limit
+    chunkSizeWarningLimit: 1000,
+    target: 'es2015'
+  },
+  
+  // Server configuration
+  server: {
+    port: 5174,
+    strictPort: false
+  },
+  
+  // Preview configuration
+  preview: {
+    port: 4173
+  }
 });
