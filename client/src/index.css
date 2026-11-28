@@ -3409,3 +3409,43 @@ html {
     width: auto;
   }
 }
+
+
+/* ================================================================
+   OFFLINE SYNC ANIMATIONS
+   ================================================================ */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Offline/Sync Banner Responsive */
+@media (max-width: 640px) {
+  .offline-banner,
+  .sync-banner,
+  .sync-success {
+    padding: 10px 15px !important;
+    font-size: 13px !important;
+  }
+
+  .offline-banner p,
+  .sync-banner p,
+  .sync-success p {
+    font-size: 12px !important;
+  }
+
+  .offline-banner button,
+  .sync-banner button {
+    padding: 5px 10px !important;
+    font-size: 12px !important;
+  }
+}
