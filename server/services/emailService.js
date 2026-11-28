@@ -1,15 +1,31 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Create Gmail SMTP transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD, // 16-character app password
+  },
+});
+
+// Verify transporter connection
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ Gmail SMTP connection failed:', error);
+  } else {
+    console.log('✅ Gmail SMTP ready to send emails');
+  }
+});
 
 /**
  * Send verification email to organization with 6-digit code
  */
 export async function sendVerificationEmail(email, name, verificationCode) {
   try {
-    const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'AidLink Kakuma <onboarding@resend.dev>',
-      to: [email],
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM || 'AidLink Kakuma <uhuribhang211@gmail.com>',
+      to: email,
       subject: 'Verify Your AidLink Organization Account',
       html: `
         <!DOCTYPE html>
@@ -122,15 +138,11 @@ export async function sendVerificationEmail(email, name, verificationCode) {
       `,
     });
 
-    if (error) {
-      console.error('❌ Failed to send verification email:', error);
-      throw new Error(`Email sending failed: ${error.message}`);
-    }
-
-    console.log('✅ Verification email sent:', data?.id);
-    return { success: true, emailId: data?.id };
+    console.log('✅ Verification email sent:', info.messageId);
+    console.log('📧 Sent to:', email);
+    return { success: true, emailId: info.messageId };
   } catch (error) {
-    console.error('❌ Email service error:', error);
+    console.error('❌ Failed to send verification email:', error);
     throw error;
   }
 }
@@ -140,9 +152,9 @@ export async function sendVerificationEmail(email, name, verificationCode) {
  */
 export async function sendPasswordResetEmail(email, name, resetCode) {
   try {
-    const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'AidLink Kakuma <onboarding@resend.dev>',
-      to: [email],
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM || 'AidLink Kakuma <uhuribhang211@gmail.com>',
+      to: email,
       subject: 'Reset Your AidLink Password',
       html: `
         <!DOCTYPE html>
@@ -257,15 +269,11 @@ export async function sendPasswordResetEmail(email, name, resetCode) {
       `,
     });
 
-    if (error) {
-      console.error('❌ Failed to send password reset email:', error);
-      throw new Error(`Email sending failed: ${error.message}`);
-    }
-
-    console.log('✅ Password reset email sent:', data?.id);
-    return { success: true, emailId: data?.id };
+    console.log('✅ Password reset email sent:', info.messageId);
+    console.log('📧 Sent to:', email);
+    return { success: true, emailId: info.messageId };
   } catch (error) {
-    console.error('❌ Password reset email error:', error);
+    console.error('❌ Failed to send password reset email:', error);
     throw error;
   }
 }
@@ -275,9 +283,9 @@ export async function sendPasswordResetEmail(email, name, resetCode) {
  */
 export async function sendWelcomeEmail(email, name) {
   try {
-    const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'AidLink Kakuma <onboarding@resend.dev>',
-      to: [email],
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM || 'AidLink Kakuma <uhuribhang211@gmail.com>',
+      to: email,
       subject: 'Welcome to AidLink Kakuma!',
       html: `
         <!DOCTYPE html>
@@ -313,11 +321,8 @@ export async function sendWelcomeEmail(email, name) {
       `,
     });
 
-    if (error) {
-      console.error('❌ Failed to send welcome email:', error);
-    }
-
-    return { success: true };
+    console.log('✅ Welcome email sent:', info.messageId);
+    return { success: true, emailId: info.messageId };
   } catch (error) {
     console.error('❌ Welcome email error:', error);
     // Don't throw - welcome email is not critical
