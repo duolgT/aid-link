@@ -62,6 +62,7 @@ async function startServer() {
     await initializeDatabase();
 
     // Schedule cleanup of expired pending registrations (every hour)
+    // Note: On Vercel serverless, this will only run during the function execution
     setInterval(async () => {
       try {
         await PendingRegistration.deleteExpired();
@@ -71,17 +72,32 @@ async function startServer() {
       }
     }, 60 * 60 * 1000); // 1 hour
 
-    // Start server
-    app.listen(PORT, () => {
-      console.log(`🚀 AidLink API running on port ${PORT}`);
-      console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`💾 Database: PostgreSQL (Neon)`);
-    });
+    // Start server (only if not running on Vercel)
+    if (process.env.VERCEL !== '1') {
+      app.listen(PORT, () => {
+        console.log(`🚀 AidLink API running on port ${PORT}`);
+        console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`💾 Database: PostgreSQL (Neon)`);
+      });
+    }
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 }
 
-startServer();
+// Initialize only once on serverless cold start
+if (process.env.VERCEL !== '1') {
+  startServer();
+} else {
+  // On Vercel, just initialize database connection
+  testConnection().then((isConnected) => {
+    if (isConnected) {
+      initializeDatabase().catch(console.error);
+    }
+  });
+}
+
+// Export the Express app for Vercel
+export default app;
