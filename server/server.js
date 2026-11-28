@@ -49,28 +49,54 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // Initialize database and start server
-async function startServer() {
+let isInitialized = false;
+
+async function initializeOnce() {
+  if (isInitialized) return true;
+  
   try {
     // Test database connection
     const isConnected = await testConnection();
     if (!isConnected) {
-      console.error('❌ Failed to connect to PostgreSQL. Please check your database configuration.');
-      process.exit(1);
+      console.error('❌ Failed to connect to PostgreSQL.');
+      return false;
     }
 
     // Initialize database tables
     await initializeDatabase();
+    isInitialized = true;
+    console.log('✅ Database initialized');
+    return true;
+  } catch (error) {
+    console.error('❌ Database initialization error:', error.message);
+    return false;
+  }
+}
 
-    // Schedule cleanup of expired pending registrations (every hour)
-    // Note: On Vercel serverless, this will only run during the function execution
-    setInterval(async () => {
-      try {
-        await PendingRegistration.deleteExpired();
-        console.log('🧹 Cleaned up expired pending registrations');
-      } catch (error) {
-        console.error('⚠️ Failed to clean up pending registrations:', error.message);
+async function startServer() {
+  try {
+    // Initialize database (non-blocking for serverless)
+    if (process.env.VERCEL === '1') {
+      // On Vercel, initialize lazily
+      initializeOnce().catch(console.error);
+    } else {
+      // Locally, wait for initialization
+      const initialized = await initializeOnce();
+      if (!initialized) {
+        console.error('❌ Failed to initialize database');
+        process.exit(1);
       }
-    }, 60 * 60 * 1000); // 1 hour
+
+      // Schedule cleanup of expired pending registrations (every hour)
+      setInterval(async () => {
+        try {
+          await PendingRegistration.deleteExpired();
+          console.log('🧹 Cleaned up expired pending registrations');
+        } catch (error) {
+          console.error('⚠️ Failed to clean up pending registrations:', error.message);
+        }
+      }, 60 * 60 * 1000); // 1 hour
+    }
 
     // Start server (only if not running on Vercel)
     if (process.env.VERCEL !== '1') {
@@ -83,21 +109,13 @@ async function startServer() {
     }
   } catch (error) {
     console.error('❌ Failed to start server:', error);
-    process.exit(1);
+    if (process.env.VERCEL !== '1') {
+      process.exit(1);
+    }
   }
 }
 
-// Initialize only once on serverless cold start
-if (process.env.VERCEL !== '1') {
-  startServer();
-} else {
-  // On Vercel, just initialize database connection
-  testConnection().then((isConnected) => {
-    if (isConnected) {
-      initializeDatabase().catch(console.error);
-    }
-  });
-}
+startServer();
 
 // Export the Express app for Vercel
 export default app;
