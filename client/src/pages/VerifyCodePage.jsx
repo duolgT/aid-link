@@ -7,6 +7,7 @@ function VerifyCodePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const registeredEmail = location.state?.email || '';
+  const devCode = location.state?.devCode || null;
 
   const [email, setEmail] = useState(registeredEmail);
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -124,6 +125,12 @@ function VerifyCodePage() {
         setSuccess('New verification code sent! Check your email.');
         setCode(['', '', '', '', '', '']);
         document.getElementById('code-0')?.focus();
+        
+        // Show dev code if email failed
+        if (data.devCode) {
+          alert(`⚠️ Email sending failed!\n\nYour new verification code is: ${data.devCode}\n\nThis will also appear in the browser console and server logs.`);
+          console.log('🔐 NEW VERIFICATION CODE:', data.devCode);
+        }
       } else {
         setError(data.message || 'Failed to resend code');
       }
@@ -158,6 +165,19 @@ function VerifyCodePage() {
               Enter the 6-digit code we sent to<br />
               <strong>{email || 'your email'}</strong>
             </p>
+            {devCode && (
+              <div style={{
+                marginTop: '16px',
+                padding: '12px',
+                background: '#fff7ed',
+                border: '2px solid #ea580c',
+                borderRadius: '8px',
+                fontSize: '14px'
+              }}>
+                <strong>⚠️ Development Mode:</strong><br />
+                Email sending failed. Your code is: <strong style={{ fontSize: '18px', color: '#ea580c' }}>{devCode}</strong>
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} style={{ marginTop: '32px' }}>

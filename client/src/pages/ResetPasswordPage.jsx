@@ -6,6 +6,7 @@ function ResetPasswordPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const emailFromState = location.state?.email || '';
+  const devCode = location.state?.devCode || null;
 
   const [formData, setFormData] = useState({
     email: emailFromState,
@@ -94,6 +95,19 @@ function ResetPasswordPage() {
           <p className="auth-subtitle">
             Enter the code from your email and create a new password
           </p>
+          {devCode && (
+            <div style={{
+              marginTop: '16px',
+              padding: '12px',
+              background: '#fff7ed',
+              border: '2px solid #ea580c',
+              borderRadius: '8px',
+              fontSize: '14px'
+            }}>
+              <strong>⚠️ Development Mode:</strong><br />
+              Email sending failed. Your reset code is: <strong style={{ fontSize: '18px', color: '#ea580c' }}>{devCode}</strong>
+            </div>
+          )}
         </div>
 
         {success ? (
