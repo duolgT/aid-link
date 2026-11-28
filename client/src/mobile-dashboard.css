@@ -88,7 +88,7 @@
     font-weight: 600;
   }
   
-  /* Sidebar - Slide from left */
+  /* Sidebar - Slide from left with CLOSE button */
   .dashboard-sidebar {
     position: fixed !important;
     top: 0;
@@ -99,8 +99,10 @@
     z-index: 1001;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: none;
-    background: white;
+    background: #f8fafc;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
   }
   
   .dashboard-sidebar.open {
@@ -124,6 +126,168 @@
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+  }
+  
+  /* Sidebar Header with Close Button */
+  .sidebar-header {
+    padding: 24px 20px;
+    background: white;
+    border-bottom: 1px solid #e5eaf0;
+    position: relative;
+  }
+  
+  /* Close button styles */
+  .sidebar-close-btn:active {
+    background: #e2e8f0 !important;
+    transform: scale(0.95);
+  }
+  
+  /* Hide close button on desktop */
+  @media (min-width: 769px) {
+    .sidebar-close-btn {
+      display: none !important;
+    }
+  }
+  
+  /* Sidebar brand */
+  .sidebar-header .brand-icon {
+    width: 48px;
+    height: 48px;
+    background: #e5f5f3;
+    color: #087c75;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  
+  .sidebar-header .brand-text strong {
+    display: block;
+    font-size: 20px;
+    color: #172b49;
+    margin-bottom: 2px;
+  }
+  
+  .sidebar-header .brand-text small {
+    display: block;
+    font-size: 11px;
+    color: #087c75;
+    letter-spacing: 2.5px;
+    font-weight: 600;
+  }
+  
+  /* Navigation */
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 12px;
+    background: #f8fafc;
+  }
+  
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    color: #64748b;
+    text-decoration: none;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    transition: all 0.2s;
+    font-size: 15px;
+    font-weight: 500;
+    min-height: 48px;
+    background: transparent;
+  }
+  
+  .sidebar-link:active {
+    transform: scale(0.98);
+  }
+  
+  .sidebar-link.active {
+    background: #d1f4f0;
+    color: #087c75;
+  }
+  
+  .sidebar-link svg {
+    flex-shrink: 0;
+  }
+  
+  /* Sidebar Footer */
+  .sidebar-footer {
+    padding: 16px;
+    background: white;
+    border-top: 1px solid #e5eaf0;
+    margin-top: auto;
+  }
+  
+  .sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #e5f5f3;
+    color: #087c75;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #172b49;
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .user-email {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .sidebar-logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: white;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 44px;
+  }
+  
+  .sidebar-logout:active {
+    background: #fef2f2;
+    transform: scale(0.98);
   }
   
   /* Main content area */
@@ -400,132 +564,33 @@
     color: #64748b;
     font-size: 14px;
   }
-  
-  /* Sidebar Content - Mobile */
-  .sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid #e5eaf0;
-  }
-  
-  .sidebar-nav {
-    padding: 16px 12px;
-  }
-  
-  .sidebar-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    color: #64748b;
-    text-decoration: none;
-    border-radius: 10px;
-    margin-bottom: 4px;
-    transition: all 0.2s;
-    font-size: 15px;
-    font-weight: 500;
-    min-height: 48px;
-  }
-  
-  .sidebar-link:active {
-    transform: scale(0.98);
-  }
-  
-  .sidebar-link.active {
-    background: #e5f5f3;
-    color: #087c75;
-  }
-  
-  .sidebar-footer {
-    padding: 16px;
-    border-top: 1px solid #e5eaf0;
-    margin-top: auto;
-  }
-  
-  .sidebar-user {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: #f8fafc;
-    border-radius: 10px;
-    margin-bottom: 12px;
-  }
-  
-  .user-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    background: #e5f5f3;
-    color: #087c75;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  
-  .user-info {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .user-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #172b49;
-    margin: 0 0 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .user-email {
-    font-size: 12px;
-    color: #64748b;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .sidebar-logout {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px;
-    background: white;
-    border: 1px solid #e5eaf0;
-    border-radius: 10px;
-    color: #dc2626;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    min-height: 44px;
-  }
-  
-  .sidebar-logout:active {
-    background: #fef2f2;
-    transform: scale(0.98);
-  }
 }
 
 /* Hide mobile elements on desktop */
 @media (min-width: 769px) {
   .dashboard-mobile-header,
   .mobile-menu-button,
-  .sidebar-overlay {
+  .sidebar-overlay,
+  .sidebar-close-btn {
     display: none !important;
   }
   
   .dashboard-sidebar {
     left: 0 !important;
     position: fixed !important;
+    background: white !important;
   }
   
   .dashboard-layout {
     padding-top: 0 !important;
+  }
+  
+  .sidebar-nav {
+    background: white !important;
+  }
+  
+  .sidebar-link.active {
+    background: #e5f5f3 !important;
   }
 }
 

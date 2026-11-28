@@ -86,6 +86,32 @@ function DashboardLayout() {
       {/* Dashboard Sidebar */}
       <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
+          {/* Close button for mobile */}
+          <button 
+            className="sidebar-close-btn"
+            onClick={closeSidebar}
+            aria-label="Close menu"
+            style={{
+              position: 'absolute',
+              top: '24px',
+              right: '20px',
+              width: '36px',
+              height: '36px',
+              background: '#f1f5f9',
+              color: '#64748b',
+              border: 'none',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '20px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <X size={20} />
+          </button>
+          
           <div className="brand">
             <div className="brand-icon">
               <HeartHandshake size={28} />
