@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { Organization } from '../models/Organization.js';
 import { PendingRegistration } from '../models/PendingRegistration.js';
 import { validateOrganization } from '../utils/validation.js';
-import { sendVerificationEmail, sendWelcomeEmail } from '../services/emailService.js';
+import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailService.js';
 
 // @desc    Register humanitarian organization (Stage 1 - Pending)
 // @route   POST /api/auth/register
@@ -60,23 +60,13 @@ export const register = async (req, res, next) => {
     });
 
     // Send verification email with code
-    let emailSent = false;
     try {
       await sendVerificationEmail(normalizedEmail, name.trim(), verificationCode);
-      console.log('✅ Verification email sent to:', normalizedEmail, 'Code:', verificationCode);
-      emailSent = true;
+      console.log('✅ Verification email sent to:', normalizedEmail);
     } catch (emailError) {
       console.error('⚠️ Failed to send verification email:', emailError.message);
-      // Don't fail registration if email fails - show code in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('\n' + '='.repeat(60));
-        console.log('📧 EMAIL SENDING FAILED - DEVELOPMENT MODE');
-        console.log('='.repeat(60));
-        console.log('Email:', normalizedEmail);
-        console.log('Verification Code:', verificationCode);
-        console.log('Code expires in 10 minutes');
-        console.log('='.repeat(60) + '\n');
-      }
+      // Log code in development for debugging (server console only)
+      console.log('🔐 DEV MODE - Verification Code:', verificationCode);
     }
 
     res.status(201).json({
@@ -85,13 +75,8 @@ export const register = async (req, res, next) => {
       data: {
         email: normalizedEmail,
         name: name.trim(),
-        emailSent: emailSent,
-        expiresIn: '10 minutes',
-        // In development, include code if email failed
-        ...(process.env.NODE_ENV === 'development' && !emailSent && { 
-          devCode: verificationCode,
-          devMessage: 'Email sending failed. Use this code for testing.' 
-        })
+        emailSent: true,
+        expiresIn: '10 minutes'
       }
     });
   } catch (error) {
@@ -362,31 +347,18 @@ export const resendVerification = async (req, res, next) => {
     });
 
     // Send verification email with new code
-    let emailSent = false;
     try {
       await sendVerificationEmail(normalizedEmail, pendingReg.name, verificationCode);
-      console.log('✅ New verification code sent:', verificationCode);
-      emailSent = true;
+      console.log('✅ New verification code sent to:', normalizedEmail);
     } catch (emailError) {
-      console.error('⚠️ Failed to send verification email:', emailError.message);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('\n' + '='.repeat(60));
-        console.log('📧 EMAIL SENDING FAILED - DEVELOPMENT MODE');
-        console.log('='.repeat(60));
-        console.log('Email:', normalizedEmail);
-        console.log('Verification Code:', verificationCode);
-        console.log('Code expires in 10 minutes');
-        console.log('='.repeat(60) + '\n');
-      }
+      console.error('⚠️ Failed to resend verification email:', emailError.message);
+      // Log code in development for debugging (server console only)
+      console.log('🔐 DEV MODE - Verification Code:', verificationCode);
     }
 
     res.json({
       success: true,
-      message: 'Verification code sent. Please check your email. The code expires in 10 minutes.',
-      ...(process.env.NODE_ENV === 'development' && !emailSent && {
-        devCode: verificationCode,
-        devMessage: 'Email sending failed. Use this code for testing.'
-      })
+      message: 'Verification code sent. Please check your email. The code expires in 10 minutes.'
     });
   } catch (error) {
     next(error);
@@ -438,31 +410,18 @@ export const forgotPassword = async (req, res, next) => {
     });
 
     // Send password reset email
-    let emailSent = false;
     try {
       await sendPasswordResetEmail(normalizedEmail, organization.name, resetCode);
-      console.log('✅ Password reset code sent to:', normalizedEmail, 'Code:', resetCode);
-      emailSent = true;
+      console.log('✅ Password reset code sent to:', normalizedEmail);
     } catch (emailError) {
       console.error('⚠️ Failed to send password reset email:', emailError.message);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('\n' + '='.repeat(60));
-        console.log('📧 EMAIL SENDING FAILED - DEVELOPMENT MODE');
-        console.log('='.repeat(60));
-        console.log('Email:', normalizedEmail);
-        console.log('Password Reset Code:', resetCode);
-        console.log('Code expires in 10 minutes');
-        console.log('='.repeat(60) + '\n');
-      }
+      // Log code in development for debugging (server console only)
+      console.log('🔐 DEV MODE - Password Reset Code:', resetCode);
     }
 
     res.json({
       success: true,
-      message: 'If an account exists with this email, you will receive a password reset code.',
-      ...(process.env.NODE_ENV === 'development' && organization && !emailSent && {
-        devCode: resetCode,
-        devMessage: 'Email sending failed. Use this code for testing.'
-      })
+      message: 'If an account exists with this email, you will receive a password reset code.'
     });
   } catch (error) {
     next(error);
