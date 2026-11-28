@@ -205,7 +205,7 @@ export const verifyCode = async (req, res, next) => {
       email: pendingReg.email,
       password: pendingReg.password, // Already hashed
       sector: pendingReg.sector,
-      is_verified: true, // Verified immediately upon code confirmation
+      verified: true, // Verified immediately upon code confirmation
       verification_token: null,
       verification_code: null,
       verification_token_expires: null
@@ -265,7 +265,7 @@ export const verifyEmail = async (req, res, next) => {
       });
     }
 
-    if (organization.is_verified) {
+    if (organization.verified) {
       return res.status(400).json({
         success: false,
         message: 'Email already verified'
@@ -274,7 +274,7 @@ export const verifyEmail = async (req, res, next) => {
 
     // Update organization as verified
     await Organization.update(organization.id, {
-      is_verified: true,
+      verified: true,
       verification_token: null,
       verification_code: null,
       verification_token_expires: null
@@ -318,7 +318,7 @@ export const resendVerification = async (req, res, next) => {
 
     // Check if organization already exists and is verified
     const existingOrg = await Organization.findByEmail(normalizedEmail);
-    if (existingOrg && existingOrg.is_verified) {
+    if (existingOrg && existingOrg.verified) {
       return res.status(400).json({
         success: false,
         message: 'Email already verified. Please login.'
@@ -392,7 +392,7 @@ export const forgotPassword = async (req, res, next) => {
       });
     }
 
-    if (!organization.is_verified) {
+    if (!organization.verified) {
       return res.status(400).json({
         success: false,
         message: 'Email not verified. Please complete registration first.'

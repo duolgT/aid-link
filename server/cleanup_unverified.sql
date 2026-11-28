@@ -1,16 +1,15 @@
--- Clean up unverified accounts from old system
--- Run this manually: mysql -u root aidlink_kakuma < cleanup_unverified.sql
+-- Clean up unverified accounts
+-- PostgreSQL compatible
+-- Run this manually if needed
 
 -- Show unverified accounts before deletion
-SELECT '=== UNVERIFIED ACCOUNTS TO BE DELETED ===' as '';
-SELECT email, name, is_verified, created_at 
+SELECT email, name, verified, created_at 
 FROM organizations 
-WHERE is_verified = 0 OR is_verified IS NULL OR is_verified = FALSE;
+WHERE verified = FALSE OR verified IS NULL;
 
 -- Delete unverified accounts
 DELETE FROM organizations 
-WHERE is_verified = 0 OR is_verified IS NULL OR is_verified = FALSE;
+WHERE verified = FALSE OR verified IS NULL;
 
 -- Show result
-SELECT '=== CLEANUP COMPLETE ===' as '';
 SELECT COUNT(*) as remaining_accounts FROM organizations;
