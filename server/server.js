@@ -6,6 +6,7 @@ import organizationRoutes from './routes/organizationRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import emergencyGuideRoutes from './routes/emergencyGuideRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { testConnection, initializeDatabase } from './config/db.js';
 import { PendingRegistration } from './models/PendingRegistration.js';
@@ -37,6 +38,7 @@ app.use('/api/organizations', organizationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/emergency-guides', emergencyGuideRoutes);
+app.use('/api/admin', adminRoutes); // Admin routes for testing
 
 // Error handling
 app.use((req, res) => {
