@@ -1,0 +1,124 @@
+-- PostgreSQL Database Initialization Script for AidLink Kakuma
+-- Run this script on your Neon PostgreSQL database
+
+-- Create organizations table
+CREATE TABLE IF NOT EXISTS organizations (
+  id VARCHAR(36) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  sector VARCHAR(100) NOT NULL,
+  verified BOOLEAN DEFAULT FALSE,
+  reset_code VARCHAR(6),
+  reset_code_expires TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_organizations_email ON organizations(email);
+CREATE INDEX IF NOT EXISTS idx_organizations_reset_code ON organizations(reset_code);
+
+-- Create pending_registrations table
+CREATE TABLE IF NOT EXISTS pending_registrations (
+  id VARCHAR(36) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  sector VARCHAR(100) NOT NULL,
+  verification_code VARCHAR(6) NOT NULL,
+  verification_token VARCHAR(255),
+  verification_expires TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_email ON pending_registrations(email);
+CREATE INDEX IF NOT EXISTS idx_pending_code ON pending_registrations(verification_code);
+CREATE INDEX IF NOT EXISTS idx_pending_expires ON pending_registrations(verification_expires);
+
+-- Create reports table
+CREATE TABLE IF NOT EXISTS reports (
+  id VARCHAR(36) PRIMARY KEY,
+  category VARCHAR(50) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  area VARCHAR(255),
+  description TEXT NOT NULL,
+  organization_id VARCHAR(36) NOT NULL,
+  urgency VARCHAR(10) DEFAULT 'medium' CHECK (urgency IN ('low', 'medium', 'high')),
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'resolved', 'closed')),
+  is_anonymous BOOLEAN DEFAULT TRUE,
+  synced BOOLEAN DEFAULT TRUE,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_reports_organization ON reports(organization_id);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
+CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);
+CREATE INDEX IF NOT EXISTS idx_reports_created ON reports(created_at);
+
+-- Create services table
+CREATE TABLE IF NOT EXISTS services (
+  id VARCHAR(36) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  area VARCHAR(255),
+  description TEXT NOT NULL,
+  services_offered JSONB NOT NULL,
+  coordinates JSONB,
+  phone VARCHAR(50),
+  verified BOOLEAN DEFAULT FALSE,
+  is_demo BOOLEAN DEFAULT FALSE,
+  organization_id VARCHAR(36),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_services_category ON services(category);
+CREATE INDEX IF NOT EXISTS idx_services_verified ON services(verified);
+CREATE INDEX IF NOT EXISTS idx_services_organization ON services(organization_id);
+
+-- Create emergency_guides table
+CREATE TABLE IF NOT EXISTS emergency_guides (
+  id VARCHAR(36) PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  summary TEXT NOT NULL,
+  steps JSONB NOT NULL,
+  reminder TEXT,
+  locally_verified BOOLEAN DEFAULT FALSE,
+  organization_id VARCHAR(36),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_guides_category ON emergency_guides(category);
+CREATE INDEX IF NOT EXISTS idx_guides_verified ON emergency_guides(locally_verified);
+
+-- Create function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create triggers for updated_at
+CREATE TRIGGER update_organizations_updated_at BEFORE UPDATE ON organizations
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_reports_updated_at BEFORE UPDATE ON reports
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_services_updated_at BEFORE UPDATE ON services
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_emergency_guides_updated_at BEFORE UPDATE ON emergency_guides
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Success message
+SELECT 'Database tables created successfully!' AS status;

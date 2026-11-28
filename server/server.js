@@ -8,6 +8,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import emergencyGuideRoutes from './routes/emergencyGuideRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { testConnection, initializeDatabase } from './config/db.js';
+import { PendingRegistration } from './models/PendingRegistration.js';
 
 dotenv.config();
 
@@ -15,7 +16,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'https://aidlinkkakuma.vercel.app',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -45,29 +49,73 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // Initialize database and start server
-async function startServer() {
+let isInitialized = false;
+
+async function initializeOnce() {
+  if (isInitialized) return true;
+  
   try {
     // Test database connection
     const isConnected = await testConnection();
     if (!isConnected) {
-      console.error('❌ Failed to connect to MySQL. Please check your database configuration.');
-      process.exit(1);
+      console.error('❌ Failed to connect to PostgreSQL.');
+      return false;
     }
 
     // Initialize database tables
     await initializeDatabase();
+    isInitialized = true;
+    console.log('✅ Database initialized');
+    return true;
+  } catch (error) {
+    console.error('❌ Database initialization error:', error.message);
+    return false;
+  }
+}
 
-    // Start server
-    app.listen(PORT, () => {
-      console.log(`🚀 AidLink API running on port ${PORT}`);
-      console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`💾 Database: MySQL (${process.env.DB_NAME})`);
-    });
+async function startServer() {
+  try {
+    // Initialize database (non-blocking for serverless)
+    if (process.env.VERCEL === '1') {
+      // On Vercel, initialize lazily
+      initializeOnce().catch(console.error);
+    } else {
+      // Locally, wait for initialization
+      const initialized = await initializeOnce();
+      if (!initialized) {
+        console.error('❌ Failed to initialize database');
+        process.exit(1);
+      }
+
+      // Schedule cleanup of expired pending registrations (every hour)
+      setInterval(async () => {
+        try {
+          await PendingRegistration.deleteExpired();
+          console.log('🧹 Cleaned up expired pending registrations');
+        } catch (error) {
+          console.error('⚠️ Failed to clean up pending registrations:', error.message);
+        }
+      }, 60 * 60 * 1000); // 1 hour
+    }
+
+    // Start server (only if not running on Vercel)
+    if (process.env.VERCEL !== '1') {
+      app.listen(PORT, () => {
+        console.log(`🚀 AidLink API running on port ${PORT}`);
+        console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`💾 Database: PostgreSQL (Neon)`);
+      });
+    }
   } catch (error) {
     console.error('❌ Failed to start server:', error);
-    process.exit(1);
+    if (process.env.VERCEL !== '1') {
+      process.exit(1);
+    }
   }
 }
 
 startServer();
+
+// Export the Express app for Vercel
+export default app;
